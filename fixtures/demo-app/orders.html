@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acme Commerce — Orders</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Slightly larger base text than Tailwind's default: this app exists to be
+     screen-recorded, and the model has to read the UI back out of the frames. */
+  html { font-size: 17px; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased">
+
+<div class="mx-auto max-w-6xl px-6 py-8">
+
+  <!-- Header -->
+  <header class="mb-7 flex items-end justify-between gap-4">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Acme Commerce</p>
+      <h1 class="mt-1 text-3xl font-semibold tracking-tight">Orders</h1>
+    </div>
+    <button id="exportBtn"
+            class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm
+                   transition hover:bg-slate-700 focus:outline-none focus-visible:ring-2
+                   focus-visible:ring-slate-900 focus-visible:ring-offset-2">
+      Export CSV
+    </button>
+  </header>
+
+  <!-- Success banner: the visible success state. Persists until dismissed. -->
+  <div id="successBanner" class="mb-6 hidden">
+    <div class="flex items-start gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-4 shadow-sm">
+      <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.79 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/>
+      </svg>
+      <div class="min-w-0 flex-1">
+        <p class="font-semibold text-emerald-900" id="successTitle"></p>
+        <p class="mt-0.5 text-sm text-emerald-800" id="successDetail"></p>
+      </div>
+      <button id="dismissBanner" class="shrink-0 rounded px-2 text-sm font-medium text-emerald-800 hover:bg-emerald-100">
+        Dismiss
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <section class="mb-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <label for="statusFilter" class="mb-1.5 block text-sm font-medium text-slate-700">Status</label>
+        <select id="statusFilter"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+                       focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900">
+          <option value="all">All statuses</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Pending">Pending</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="dateFilter" class="mb-1.5 block text-sm font-medium text-slate-700">Date range</label>
+        <select id="dateFilter"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+                       focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900">
+          <option value="all">All time</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="searchFilter" class="mb-1.5 block text-sm font-medium text-slate-700">Search customer</label>
+        <input id="searchFilter" type="text" autocomplete="off" placeholder="Name or email"
+               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+                      placeholder:text-slate-400 focus:border-slate-900 focus:outline-none
+                      focus:ring-1 focus:ring-slate-900">
+      </div>
+
+      <div class="flex items-end">
+        <button id="resetBtn"
+                class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium
+                       text-slate-700 transition hover:bg-slate-50">
+          Reset filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Explicit, readable result count. Every filter change moves this number,
+         which is what makes a corrected mistake observable in a recording. -->
+    <p class="mt-4 text-sm text-slate-600">
+      Showing <span id="shownCount" class="font-semibold text-slate-900">0</span>
+      of <span id="totalCount" class="font-semibold text-slate-900">0</span> orders
+    </p>
+  </section>
+
+  <!-- Table -->
+  <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+        <tr>
+          <th class="px-5 py-3 font-semibold">Order ID</th>
+          <th class="px-5 py-3 font-semibold">Customer</th>
+          <th class="px-5 py-3 font-semibold">Email</th>
+          <th class="px-5 py-3 font-semibold">Date</th>
+          <th class="px-5 py-3 font-semibold">Status</th>
+          <th class="px-5 py-3 text-right font-semibold">Total</th>
+          <th class="px-5 py-3 font-semibold"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody" class="divide-y divide-slate-100"></tbody>
+    </table>
+    <p id="emptyState" class="hidden px-5 py-10 text-center text-sm text-slate-500">
+      No orders match the current filters.
+    </p>
+  </section>
+
+  <p class="mt-6 text-xs text-slate-500">
+    Demo fixture with synthetic data. Built for this assignment's test recordings — no real customers.
+  </p>
+</div>
+
+<!-- Export dialog -->
+<div id="exportModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-slate-900/50" data-close-modal></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+         class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+      <h2 id="modalTitle" class="text-lg font-semibold tracking-tight">Export filtered orders</h2>
+      <p class="mt-1.5 text-sm text-slate-600">
+        <span id="modalCount" class="font-semibold text-slate-900">0</span> orders match the current filters
+        and will be written to the file.
+      </p>
+
+      <div class="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <label class="flex cursor-pointer items-start gap-3">
+          <input id="includeEmail" type="checkbox"
+                 class="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-400 text-slate-900
+                        focus:ring-slate-900">
+          <span>
+            <span class="block text-sm font-medium text-slate-800">Include customer email</span>
+            <span class="mt-0.5 block text-xs text-slate-600">
+              Adds an Email column to the exported file. Off by default.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button data-close-modal
+                class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium
+                       text-slate-700 transition hover:bg-slate-50">
+          Cancel
+        </button>
+        <button id="confirmExport"
+                class="rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm
+                       transition hover:bg-slate-700">
+          Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // Offsets in days rather than fixed dates, so the date filters keep producing
+  // the same row counts no matter when the recordings are made.
+  const SEED = [
+    { id: 'ORD-1042', customer: 'Nadia Kovalenko', email: 'nadia.k@example.com',   daysAgo: 2,  status: 'Shipped',   total: 249.00 },
+    { id: 'ORD-1041', customer: 'Tomas Brandt',    email: 't.brandt@example.com',  daysAgo: 3,  status: 'Pending',   total: 89.50 },
+    { id: 'ORD-1040', customer: 'Priya Raman',     email: 'priya.r@example.com',   daysAgo: 1,  status: 'Shipped',   total: 412.75 },
+    { id: 'ORD-1039', customer: 'Luis Ferreira',   email: 'l.ferreira@example.com',daysAgo: 11, status: 'Shipped',   total: 156.20 },
+    { id: 'ORD-1038', customer: 'Mei Tanaka',      email: 'mei.t@example.com',     daysAgo: 14, status: 'Pending',   total: 73.90 },
+    { id: 'ORD-1037', customer: 'Oliver Grant',    email: 'o.grant@example.com',   daysAgo: 18, status: 'Cancelled', total: 318.00 },
+    { id: 'ORD-1036', customer: 'Sofia Almeida',   email: 's.almeida@example.com', daysAgo: 22, status: 'Shipped',   total: 95.40 },
+    { id: 'ORD-1035', customer: 'Jonas Weber',     email: 'j.weber@example.com',   daysAgo: 25, status: 'Pending',   total: 204.10 },
+    { id: 'ORD-1034', customer: 'Amara Okafor',    email: 'a.okafor@example.com',  daysAgo: 45, status: 'Shipped',   total: 137.60 },
+    { id: 'ORD-1033', customer: 'Elena Rossi',     email: 'e.rossi@example.com',   daysAgo: 60, status: 'Shipped',   total: 521.30 },
+    { id: 'ORD-1032', customer: 'Daniel Novak',    email: 'd.novak@example.com',   daysAgo: 75, status: 'Cancelled', total: 64.25 },
+    { id: 'ORD-1031', customer: 'Hana Eriksen',    email: 'h.eriksen@example.com', daysAgo: 78, status: 'Pending',   total: 188.00 },
+  ];
+
+  const DAY_MS = 86400000;
+
+  const isoDate = (daysAgo) => new Date(Date.now() - daysAgo * DAY_MS).toISOString().slice(0, 10);
+
+  const orders = SEED
+    .map(({ daysAgo, ...rest }) => ({ ...rest, daysAgo, date: isoDate(daysAgo) }))
+    .sort((a, b) => a.daysAgo - b.daysAgo);
+
+  const el = (id) => document.getElementById(id);
+
+  const ui = {
+    status: el('statusFilter'),
+    date: el('dateFilter'),
+    search: el('searchFilter'),
+    reset: el('resetBtn'),
+    body: el('ordersBody'),
+    empty: el('emptyState'),
+    shown: el('shownCount'),
+    total: el('totalCount'),
+    exportBtn: el('exportBtn'),
+    modal: el('exportModal'),
+    modalCount: el('modalCount'),
+    includeEmail: el('includeEmail'),
+    confirmExport: el('confirmExport'),
+    banner: el('successBanner'),
+    bannerTitle: el('successTitle'),
+    bannerDetail: el('successDetail'),
+    dismissBanner: el('dismissBanner'),
+  };
+
+  const STATUS_STYLES = {
+    Shipped:   'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+    Pending:   'bg-amber-50 text-amber-700 ring-amber-600/20',
+    Cancelled: 'bg-rose-50 text-rose-700 ring-rose-600/20',
+  };
+
+  const money = (n) => n.toFixed(2);
+
+  function visibleOrders() {
+    const status = ui.status.value;
+    const days = ui.date.value;
+    const query = ui.search.value.trim().toLowerCase();
+
+    return orders.filter((o) => {
+      if (status !== 'all' && o.status !== status) return false;
+      if (days !== 'all' && o.daysAgo > Number(days)) return false;
+      if (query && !(o.customer.toLowerCase().includes(query) || o.email.toLowerCase().includes(query))) return false;
+      return true;
+    });
+  }
+
+  function render() {
+    const rows = visibleOrders();
+
+    ui.body.replaceChildren(...rows.map((o) => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50';
+      tr.innerHTML = `
+        <td class="px-5 py-3 font-mono text-xs text-slate-600">${o.id}</td>
+        <td class="px-5 py-3 font-medium">${o.customer}</td>
+        <td class="px-5 py-3 text-slate-600">${o.email}</td>
+        <td class="px-5 py-3 tabular-nums text-slate-600">${o.date}</td>
+        <td class="px-5 py-3">
+          <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${STATUS_STYLES[o.status]}">
+            ${o.status}
+          </span>
+        </td>
+        <td class="px-5 py-3 text-right tabular-nums">$${money(o.total)}</td>
+        <td class="px-5 py-3 text-right">
+          ${o.status === 'Pending'
+            ? `<button data-mark-shipped="${o.id}" class="rounded border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-100">Mark shipped</button>`
+            : ''}
+        </td>`;
+      return tr;
+    }));
+
+    ui.empty.classList.toggle('hidden', rows.length > 0);
+    ui.shown.textContent = String(rows.length);
+    ui.total.textContent = String(orders.length);
+  }
+
+  // --- CSV export -----------------------------------------------------------
+
+  const csvCell = (value) => {
+    const s = String(value);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  function buildCsv(rows, includeEmail) {
+    const header = includeEmail
+      ? ['Order ID', 'Customer', 'Email', 'Date', 'Status', 'Total']
+      : ['Order ID', 'Customer', 'Date', 'Status', 'Total'];
+
+    const body = rows.map((o) => (includeEmail
+      ? [o.id, o.customer, o.email, o.date, o.status, money(o.total)]
+      : [o.id, o.customer, o.date, o.status, money(o.total)]
+    ).map(csvCell).join(','));
+
+    return [header.join(','), ...body].join('\r\n');
+  }
+
+  function fileName() {
+    const status = ui.status.value === 'all' ? 'all' : ui.status.value.toLowerCase();
+    const range = ui.date.value === 'all' ? 'alltime' : `last${ui.date.value}days`;
+    return `orders-${status}-${range}.csv`;
+  }
+
+  function download(name, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // --- Modal ----------------------------------------------------------------
+
+  function openModal() {
+    ui.modalCount.textContent = String(visibleOrders().length);
+    ui.modal.classList.remove('hidden');
+    ui.includeEmail.focus();
+  }
+
+  const closeModal = () => ui.modal.classList.add('hidden');
+
+  function runExport() {
+    const rows = visibleOrders();
+    const includeEmail = ui.includeEmail.checked;
+    const name = fileName();
+
+    download(name, buildCsv(rows, includeEmail));
+    closeModal();
+
+    const columns = includeEmail
+      ? 'Order ID, Customer, Email, Date, Status, Total'
+      : 'Order ID, Customer, Date, Status, Total';
+
+    ui.bannerTitle.textContent = `Exported ${rows.length} order${rows.length === 1 ? '' : 's'} to ${name}`;
+    ui.bannerDetail.textContent = `Columns: ${columns}`;
+    ui.banner.classList.remove('hidden');
+  }
+
+  // --- Wiring ---------------------------------------------------------------
+
+  for (const control of [ui.status, ui.date]) control.addEventListener('change', render);
+  ui.search.addEventListener('input', render);
+
+  ui.reset.addEventListener('click', () => {
+    ui.status.value = 'all';
+    ui.date.value = 'all';
+    ui.search.value = '';
+    ui.includeEmail.checked = false;
+    ui.banner.classList.add('hidden');
+    render();
+  });
+
+  ui.exportBtn.addEventListener('click', openModal);
+  ui.confirmExport.addEventListener('click', runExport);
+  ui.dismissBanner.addEventListener('click', () => ui.banner.classList.add('hidden'));
+
+  ui.modal.addEventListener('click', (e) => {
+    if (e.target instanceof Element && e.target.closest('[data-close-modal]')) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !ui.modal.classList.contains('hidden')) closeModal();
+  });
+
+  // Second, distinct operation. Exists so one recording can deliberately show
+  // two unrelated operations — the input the product must refuse to summarise.
+  ui.body.addEventListener('click', (e) => {
+    const btn = e.target instanceof Element ? e.target.closest('[data-mark-shipped]') : null;
+    if (!btn) return;
+    const order = orders.find((o) => o.id === btn.getAttribute('data-mark-shipped'));
+    if (order) {
+      order.status = 'Shipped';
+      render();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

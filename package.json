@@ -1,0 +1,39 @@
+{
+  "name": "screencast-to-howto",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turns a short screen recording of one browser operation into a verified, step-by-step how-to guide with timestamps and screenshots.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "demo-app": "tsx scripts/serve-demo-app.ts",
+    "observe": "tsx scripts/observe.ts",
+    "reduce": "tsx scripts/reduce.ts",
+    "phrase": "tsx scripts/phrase.ts",
+    "guide": "tsx scripts/guide.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^2.22.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "ffmpeg-static": "^5.3.0",
+    "ffprobe-static": "^3.1.0",
+    "multer": "^2.3.0",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.0"
+  }
+}

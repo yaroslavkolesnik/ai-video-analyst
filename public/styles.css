@@ -1,0 +1,1630 @@
+/**
+ * Screencast -> How-To — visual system.
+ *
+ * One plain stylesheet, no build step: no Tailwind, no preprocessor, no
+ * PostCSS. Everything that reads as depth here — layered shadows, inset
+ * highlights, glass, gradients, masked vector icons, micro-animation — is
+ * native CSS, because the project's standing trade-off was declining a
+ * *framework*, never declining design.
+ *
+ * Three things are load-bearing and should survive any edit:
+ *
+ *  1. Cascade layers replace specificity fights. The order below is the only
+ *     place precedence is decided, so no rule in here needs `!important` to
+ *     beat another one (the two that use it are marked and explained).
+ *  2. Tokens go primitive -> semantic -> component. Components never name a
+ *     hex value, which is why one palette swap re-themes the whole page.
+ *  3. Green means *verified against the recording*, and nothing else. The
+ *     interactive hue is blue on purpose: a green primary button would blur
+ *     the one distinction the product is built to make.
+ *
+ * The page's DOM is written by app.js and index.html and is treated as a fixed
+ * contract — every selector below already exists. State that app.js expresses
+ * by filling a cell (a stage's elapsed time) is read back with :has() rather
+ * than by asking app.js for another class.
+ */
+
+/* Declared here and nowhere else. `responsive` is last on purpose: narrow-width
+   rules adjust what `components` established, so they have to win without
+   needing a heavier selector or !important to do it. */
+@layer tokens, base, layout, components, states, motion, responsive;
+
+/* ========================================================================
+   TOKENS
+   ======================================================================== */
+
+@layer tokens {
+  :root {
+    /* -- primitive: the raw ramp, referenced only by the semantic layer --- */
+    --slate-950: #020617;
+    --slate-900: #0b1120;
+    --slate-850: #0e1425;
+    --slate-800: #141b2e;
+    --slate-400: #94a3b8;
+    --slate-300: #cbd5e1;
+    --slate-50: #f8fafc;
+
+    --blue-700: #1d4ed8;
+    --blue-600: #2563eb;
+    --blue-500: #3b82f6;
+    --blue-400: #60a5fa;
+
+    --green-700: #15803d;
+    --green-400: #4ade80;
+
+    --amber-800: #92400e;
+    --amber-400: #fbbf24;
+
+    --red-700: #b91c1c;
+    --red-400: #f87171;
+
+    /* -- semantic: dark is the designed-first theme ----------------------- */
+    --bg: var(--slate-950);
+    --surface: var(--slate-900);
+    --surface-2: var(--slate-850);
+    --surface-3: var(--slate-800);
+    --ink: var(--slate-50);
+    --ink-2: var(--slate-300);
+    --ink-muted: var(--slate-400);
+    --line: rgb(148 163 184 / 16%);
+    --line-strong: rgb(148 163 184 / 32%);
+
+    --accent: var(--blue-500);
+    --accent-deep: var(--blue-600);
+    --accent-ink: #ffffff;
+    /* The CTA's own stops, kept apart from --accent because the button carries
+       white text and the accent does not: white on --blue-500 measures 3.68:1,
+       which fails AA at the label's size. Both stops here clear it (5.17 and
+       6.70), so the label is legible over the whole gradient, not just the
+       bottom of it — and they are identical in both themes for that reason. */
+    --cta-from: var(--blue-600);
+    --cta-to: var(--blue-700);
+    --ok: var(--green-400);
+    --warn: var(--amber-400);
+    --bad: var(--red-400);
+    --ring: var(--blue-400);
+
+    --wash-1: 12%;
+    --wash-2: 7%;
+    --tint: 14%;
+    --tint-line: 34%;
+
+    /* -- component: elevation, radius, rhythm, type ----------------------- */
+    --shadow-1:
+      0 1px 2px rgb(2 6 23 / 40%),
+      0 8px 24px -14px rgb(2 6 23 / 70%);
+    --shadow-2:
+      0 1px 2px rgb(2 6 23 / 45%),
+      0 18px 40px -18px rgb(2 6 23 / 75%);
+    --shadow-3:
+      0 2px 6px rgb(2 6 23 / 50%),
+      0 36px 68px -28px rgb(2 6 23 / 85%);
+    /* The 1px inset light along the top edge — the cheapest depth cue there
+       is, and the one most responsible for a surface reading as a solid
+       object rather than a coloured rectangle. */
+    --edge-light: inset 0 1px 0 rgb(255 255 255 / 7%);
+    --glow-accent: 0 10px 30px -10px rgb(59 130 246 / 45%);
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 16px;
+    --r-xl: 22px;
+    --r-pill: 999px;
+
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 24px;
+    --s-6: 32px;
+    --s-7: 48px;
+    --s-8: 64px;
+    --s-9: 96px;
+
+    --font-sans:
+      "Inter", system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI",
+      Roboto, "Helvetica Neue", sans-serif;
+    --font-mono:
+      "JetBrains Mono", ui-monospace, "SFMono-Regular", "SF Mono",
+      "Cascadia Mono", "Liberation Mono", Consolas, monospace;
+
+    --measure: 68ch;
+    --container: 64rem;
+    --rail: 26px;
+
+    /* Motion: one duration set, one easing set, used everywhere. A page whose
+       transitions disagree with each other reads as assembled, not designed. */
+    --t-micro: 170ms;
+    --t-enter: 380ms;
+    --t-exit: 240ms;
+    --ease-out: cubic-bezier(0.22, 0.72, 0.3, 1);
+
+    /* -- icons: Lucide geometry, inlined so the page owes nobody a request.
+       Used as masks, so a glyph takes the colour of the text beside it. --- */
+    --i-upload: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpath d='M17 8l-5-5-5 5'/%3E%3Cpath d='M12 3v12'/%3E%3C/svg%3E");
+    --i-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='M12 5l7 7-7 7'/%3E%3C/svg%3E");
+    --i-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+    --i-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6L6 18'/%3E%3Cpath d='M6 6l12 12'/%3E%3C/svg%3E");
+    --i-help: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.6-3 4'/%3E%3Cpath d='M12 17.5h.01'/%3E%3C/svg%3E");
+    --i-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 4.2 2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z'/%3E%3Cpath d='M12 9.5v4'/%3E%3Cpath d='M12 17.5h.01'/%3E%3C/svg%3E");
+    --i-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 16.5v-5'/%3E%3Cpath d='M12 7.8h.01'/%3E%3C/svg%3E");
+    --i-play: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='black' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M6 4.5l13 7.5-13 7.5z'/%3E%3C/svg%3E");
+    --i-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E");
+    --i-scissors: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Cpath d='M20 4L8.12 15.88'/%3E%3Cpath d='M14.8 14.8L20 20'/%3E%3Cpath d='M8.12 8.12L12 12'/%3E%3C/svg%3E");
+    --i-copy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='12.5' height='12.5' rx='2.5'/%3E%3Cpath d='M5.5 15H5a2.5 2.5 0 0 1-2.5-2.5V5A2.5 2.5 0 0 1 5 2.5h7.5A2.5 2.5 0 0 1 15 5v.5'/%3E%3C/svg%3E");
+    --i-gauge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 14l4-4'/%3E%3Cpath d='M3.3 17a9 9 0 1 1 17.4 0'/%3E%3C/svg%3E");
+  }
+
+  /* Light is not the dark theme inverted — the ramp, the tint strengths and
+     the shadow opacities are all chosen again for a white ground. */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7fa;
+      --surface: #ffffff;
+      --surface-2: #ffffff;
+      --surface-3: #f1f5f9;
+      --ink: #0b1220;
+      --ink-2: #334155;
+      --ink-muted: #52607a;
+      --line: rgb(15 23 42 / 10%);
+      --line-strong: rgb(15 23 42 / 20%);
+
+      --accent: var(--blue-700);
+      --accent-deep: var(--blue-600);
+      --ok: var(--green-700);
+      --warn: var(--amber-800);
+      --bad: var(--red-700);
+      --ring: var(--blue-600);
+
+      --wash-1: 7%;
+      --wash-2: 4%;
+      --tint: 8%;
+      --tint-line: 26%;
+
+      --shadow-1:
+        0 1px 2px rgb(15 23 42 / 6%),
+        0 10px 24px -16px rgb(15 23 42 / 18%);
+      --shadow-2:
+        0 1px 2px rgb(15 23 42 / 7%),
+        0 18px 36px -20px rgb(15 23 42 / 22%);
+      --shadow-3:
+        0 2px 6px rgb(15 23 42 / 8%),
+        0 34px 60px -30px rgb(15 23 42 / 26%);
+      --edge-light: inset 0 1px 0 rgb(255 255 255 / 90%);
+      --glow-accent: 0 10px 28px -12px rgb(37 99 235 / 40%);
+    }
+  }
+}
+
+/* ========================================================================
+   BASE
+   ======================================================================== */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  :root {
+    color-scheme: dark light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* The one exception is #file, which the markup hides with the `hidden`
+     attribute and which the components layer deliberately brings back into
+     the tab order. Everything else that app.js hides stays hidden even if a
+     later rule sets `display`. */
+  [hidden]:not(#file) {
+    display: none !important;
+  }
+
+  body {
+    margin: 0;
+    padding: 0 var(--s-5) var(--s-9);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--ink-2);
+    background-color: var(--bg);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Two very wide, very faint washes. No image, no request, and the page stops
+     looking like a flat fill under the first card.
+     They live on a fixed pseudo-element rather than on `body` with
+     `background-attachment: fixed`, because a fixed background attachment
+     repaints the gradient on every scroll event — measurable on this page,
+     which runs past 6000px once a guide is rendered. A fixed layer the
+     compositor can keep is the same picture for none of the cost. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      radial-gradient(
+        130rem 46rem at 50% -22rem,
+        color-mix(in oklab, var(--accent) var(--wash-1), transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        70rem 40rem at 96% -6rem,
+        color-mix(in oklab, var(--ok) var(--wash-2), transparent),
+        transparent 70%
+      );
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  h1 {
+    margin: 0 0 var(--s-3);
+    font-size: clamp(1.9rem, 1.4rem + 2.2vw, 2.9rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.032em;
+  }
+
+  /* Section headings are labels, not titles: small, tracked, quiet, with a
+     short accent rule so the eye finds section starts without needing size. */
+  h2 {
+    display: flex;
+    gap: var(--s-3);
+    align-items: center;
+    margin: 0 0 var(--s-4);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  h2::before {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 2px;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--accent) 70%, transparent);
+  }
+
+  p {
+    max-width: var(--measure);
+    margin: 0 0 var(--s-3);
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  code {
+    padding: 0.1em 0.42em;
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    color: var(--ink);
+    background: color-mix(in oklab, var(--ink) 8%, transparent);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+  }
+
+  img,
+  video {
+    max-width: 100%;
+  }
+
+  /* Never removed, only replaced — this page's primary controls are a label,
+     chip buttons and <summary> elements, none of which show focus by default
+     once restyled. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+    border-radius: var(--r-sm);
+  }
+
+  ::selection {
+    color: var(--ink);
+    background: color-mix(in oklab, var(--accent) 32%, transparent);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: var(--r-pill);
+  }
+}
+
+/* ========================================================================
+   LAYOUT
+   ======================================================================== */
+
+@layer layout {
+  header,
+  main {
+    max-width: var(--container);
+    margin: 0 auto;
+  }
+
+  header {
+    position: relative;
+    padding: var(--s-9) 0 var(--s-7);
+  }
+
+  /* A decorative rule, not invented copy: CSS is the wrong place to put text
+     a screen reader would have to read. */
+  header::before {
+    content: "";
+    display: block;
+    width: 44px;
+    height: 3px;
+    margin-bottom: var(--s-5);
+    border-radius: var(--r-pill);
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .lede {
+    max-width: 46rem;
+    font-size: 1.075rem;
+    line-height: 1.65;
+    color: var(--ink-muted);
+  }
+
+  main {
+    display: flow-root;
+  }
+
+  section {
+    margin-bottom: var(--s-5);
+  }
+}
+
+/* ========================================================================
+   COMPONENTS
+   ======================================================================== */
+
+@layer components {
+  /* --- shared glyph mechanics -------------------------------------------
+     One rule gives every masked icon its geometry; each caller sets only
+     --i. This is the vanilla-CSS answer to a component prop. */
+  .status::before,
+  .badge::before,
+  .chip::before,
+  .notes li::before,
+  .flags li::before,
+  #stages .time::before,
+  #question-list li::before,
+  #warning-list li::before,
+  #discarded summary::before,
+  .steps details summary::before,
+  #run::after,
+  #copy-markdown::before,
+  .dropzone::after {
+    background-color: currentColor;
+    -webkit-mask: var(--i) center / contain no-repeat;
+    mask: var(--i) center / contain no-repeat;
+  }
+
+  /* --- panel ------------------------------------------------------------ */
+  .panel {
+    position: relative;
+    padding: var(--s-6);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-1), var(--edge-light);
+  }
+
+  .hint {
+    max-width: var(--measure);
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--ink-muted);
+  }
+
+  /* --- upload ----------------------------------------------------------- */
+  #upload-form {
+    display: grid;
+    gap: var(--s-4);
+    margin-bottom: var(--s-4);
+  }
+
+  .dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    align-items: center;
+    padding: var(--s-8) var(--s-5);
+    text-align: center;
+    cursor: pointer;
+    background: color-mix(in oklab, var(--surface-3) 60%, transparent);
+    border-radius: var(--r-lg);
+    transition:
+      background var(--t-micro) var(--ease-out),
+      box-shadow var(--t-micro) var(--ease-out);
+  }
+
+  /* The dashed edge is painted, not bordered: a border can only dash on the
+     browser's terms, while a gradient mask gives exact dash length, exact
+     thickness, and something that can move. */
+  .dropzone::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--line-strong) 0 9px,
+      transparent 9px 18px
+    );
+    border-radius: inherit;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    transition: background var(--t-micro) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .dropzone::after {
+    --i: var(--i-upload);
+
+    content: "";
+    order: -1;
+    width: 30px;
+    height: 30px;
+    margin-bottom: var(--s-2);
+    color: var(--ink-muted);
+    transition:
+      color var(--t-micro) var(--ease-out),
+      transform var(--t-enter) var(--ease-out);
+  }
+
+  #dropzone-label {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* index.html hides this input with the `hidden` attribute, which takes it
+     out of the tab order entirely — a keyboard user could not open the file
+     picker at all. Author CSS outranks the UA rule, so it comes back: one
+     transparent pixel, focusable, and pointer-transparent so it can never
+     swallow a click or a drop meant for the label. */
+  #upload #file {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* --- buttons ---------------------------------------------------------- */
+  button {
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* The single primary action on the page. */
+  #run {
+    display: inline-flex;
+    gap: var(--s-2);
+    align-items: center;
+    justify-self: start;
+    padding: 0.72rem 1.25rem;
+    font-size: 0.96rem;
+    font-weight: 600;
+    letter-spacing: -0.008em;
+    color: var(--accent-ink);
+    /* The colour is set twice on purpose: a <button> defaults to the UA's
+       opaque `buttonface`, so if the gradient is ever dropped — forced
+       colours, print, an engine that refuses the value — the label would end
+       up white on light grey. The flat stop underneath keeps it legible. */
+    background-color: var(--cta-to);
+    background-image: linear-gradient(180deg, var(--cta-from), var(--cta-to));
+    border: 1px solid color-mix(in oklab, var(--cta-to) 80%, black);
+    border-radius: var(--r-md);
+    box-shadow:
+      var(--shadow-1),
+      inset 0 1px 0 rgb(255 255 255 / 22%);
+    transition:
+      transform var(--t-micro) var(--ease-out),
+      box-shadow var(--t-micro) var(--ease-out),
+      filter var(--t-micro) var(--ease-out);
+  }
+
+  #run::after {
+    --i: var(--i-arrow-right);
+
+    content: "";
+    width: 17px;
+    height: 17px;
+    transition: transform var(--t-micro) var(--ease-out);
+  }
+
+  /* Deliberately quieter than #run: one primary action per screen, and this
+     is not it. */
+  #copy-markdown {
+    display: inline-flex;
+    gap: var(--s-2);
+    align-items: center;
+    padding: 0.5rem 0.9rem;
+    margin-right: var(--s-3);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: color-mix(in oklab, var(--ink) 6%, transparent);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    transition:
+      background var(--t-micro) var(--ease-out),
+      border-color var(--t-micro) var(--ease-out),
+      transform var(--t-micro) var(--ease-out);
+  }
+
+  #copy-markdown::before {
+    --i: var(--i-copy);
+
+    content: "";
+    width: 15px;
+    height: 15px;
+    color: var(--ink-muted);
+  }
+
+  #copy-state {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- progress rail ---------------------------------------------------- */
+  #stages {
+    --row: var(--ink-muted);
+
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  #stages li {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-4);
+    align-items: baseline;
+    padding: var(--s-3) 0 var(--s-3) var(--rail);
+  }
+
+  /* node */
+  #stages li::before {
+    content: "";
+    position: absolute;
+    top: 1.15em;
+    left: 0;
+    width: 11px;
+    height: 11px;
+    background: var(--surface);
+    border: 2px solid var(--row);
+    border-radius: var(--r-pill);
+    transition:
+      background var(--t-micro) var(--ease-out),
+      border-color var(--t-micro) var(--ease-out),
+      box-shadow var(--t-micro) var(--ease-out);
+  }
+
+  /* connector */
+  #stages li::after {
+    content: "";
+    position: absolute;
+    top: calc(1.15em + 15px);
+    bottom: -4px;
+    left: 5px;
+    width: 1px;
+    background: var(--line);
+  }
+
+  #stages li:last-child::after {
+    display: none;
+  }
+
+  #stages .name {
+    min-width: 7rem;
+    font-size: 0.94rem;
+    font-weight: 600;
+    letter-spacing: -0.006em;
+    color: var(--ink);
+  }
+
+  #stages .detail {
+    flex: 1 1 12rem;
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+
+  #stages .time {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+  }
+
+  #stages .time::before {
+    --i: var(--i-check);
+
+    content: "";
+    width: 12px;
+    height: 12px;
+    color: var(--ok);
+  }
+
+  #stages .time:empty::before {
+    display: none;
+  }
+
+  .notes,
+  #question-list,
+  #warning-list {
+    display: grid;
+    gap: var(--s-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .notes {
+    margin-top: var(--s-5);
+    gap: var(--s-2);
+  }
+
+  .notes li,
+  #question-list li,
+  #warning-list li {
+    position: relative;
+    padding-left: var(--s-6);
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+
+  .notes li::before,
+  #question-list li::before,
+  #warning-list li::before {
+    --i: var(--i-alert);
+
+    content: "";
+    position: absolute;
+    top: 0.3em;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--warn);
+  }
+
+  #question-list li::before {
+    --i: var(--i-help);
+
+    color: var(--accent);
+  }
+
+  /* --- result summary --------------------------------------------------- */
+  /* The guide's own title, not a section label: it overrides the h2 eyebrow
+     treatment completely. */
+  #summary h2 {
+    display: block;
+    margin-bottom: var(--s-4);
+    font-family: var(--font-sans);
+    font-size: clamp(1.35rem, 1.1rem + 1.1vw, 1.85rem);
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: -0.024em;
+    text-transform: none;
+    color: var(--ink);
+  }
+
+  #summary h2::before {
+    display: none;
+  }
+
+  #summary strong {
+    color: var(--ink);
+  }
+
+  /* Status is a pill with its own glyph: the state is never carried by colour
+     alone, which also means it survives being printed or screenshotted. */
+  .status {
+    display: inline-flex;
+    gap: var(--s-2);
+    align-items: center;
+    max-width: 100%;
+    padding: 0.38rem 0.8rem 0.38rem 0.66rem;
+    margin-bottom: var(--s-4);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid
+      color-mix(in oklab, currentColor var(--tint-line), transparent);
+    border-radius: var(--r-pill);
+    background: color-mix(in oklab, currentColor var(--tint), transparent);
+  }
+
+  .status::before {
+    --i: var(--i-info);
+
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+  }
+
+  .status.ok {
+    color: var(--ok);
+  }
+
+  .status.ok::before {
+    --i: var(--i-check);
+  }
+
+  .status.ok_with_warnings,
+  .status.needs_clarification {
+    color: var(--warn);
+  }
+
+  .status.ok_with_warnings::before,
+  .status.needs_clarification::before {
+    --i: var(--i-alert);
+  }
+
+  .status.declined {
+    color: var(--bad);
+  }
+
+  .status.declined::before {
+    --i: var(--i-x);
+  }
+
+  /* --- step cards ------------------------------------------------------- */
+  #player {
+    display: block;
+    width: 100%;
+    margin-bottom: var(--s-5);
+    background: #000;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .steps {
+    display: grid;
+    gap: var(--s-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps > li {
+    position: relative;
+    padding: var(--s-5);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-1), var(--edge-light);
+    transition:
+      transform var(--t-micro) var(--ease-out),
+      box-shadow var(--t-micro) var(--ease-out),
+      border-color var(--t-micro) var(--ease-out);
+  }
+
+  .steps .head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    align-items: baseline;
+  }
+
+  .steps .instruction {
+    flex: 1 1 18rem;
+    max-width: var(--measure);
+    font-size: 1.08rem;
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: -0.014em;
+    color: var(--ink);
+  }
+
+  /* app.js emits the number inside <strong>; it becomes the card's index
+     rather than bold prose. */
+  .steps .instruction strong {
+    margin-right: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+
+  /* Glass is used where the dataset says it belongs — small floating
+     controls — and never behind body text. */
+  .chip {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
+    min-height: 26px;
+    padding: 0.2rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+    background: color-mix(in oklab, var(--ink) 7%, transparent);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    transition:
+      color var(--t-micro) var(--ease-out),
+      background var(--t-micro) var(--ease-out),
+      border-color var(--t-micro) var(--ease-out),
+      transform var(--t-micro) var(--ease-out);
+  }
+
+  .chip::before {
+    --i: var(--i-play);
+
+    content: "";
+    width: 9px;
+    height: 9px;
+    color: var(--accent);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .chip {
+      background: color-mix(in oklab, var(--surface-3) 55%, transparent);
+      backdrop-filter: blur(10px) saturate(150%);
+    }
+  }
+
+  .badge {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+    padding: 0.18rem 0.55rem 0.18rem 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid
+      color-mix(in oklab, currentColor var(--tint-line), transparent);
+    border-radius: var(--r-pill);
+    background: color-mix(in oklab, currentColor var(--tint), transparent);
+  }
+
+  .badge::before {
+    content: "";
+    flex: none;
+    width: 12px;
+    height: 12px;
+  }
+
+  .badge.supported {
+    color: var(--ok);
+  }
+
+  .badge.supported::before {
+    --i: var(--i-check);
+  }
+
+  .badge.contradicted {
+    color: var(--bad);
+  }
+
+  .badge.contradicted::before {
+    --i: var(--i-x);
+  }
+
+  .badge.unclear {
+    color: var(--warn);
+  }
+
+  .badge.unclear::before {
+    --i: var(--i-help);
+  }
+
+  .flags {
+    display: grid;
+    gap: var(--s-2);
+    margin: var(--s-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .flags li {
+    position: relative;
+    padding-left: var(--s-5);
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+
+  .flags li::before {
+    --i: var(--i-info);
+
+    content: "";
+    position: absolute;
+    top: 0.32em;
+    left: 0;
+    width: 13px;
+    height: 13px;
+    color: color-mix(in oklab, var(--warn) 80%, var(--ink-muted));
+  }
+
+  .steps img {
+    display: block;
+    width: 100%;
+    margin-top: var(--s-4);
+    background: var(--surface-3);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-1);
+  }
+
+  /* --- disclosures ------------------------------------------------------ */
+  .steps details {
+    margin-top: var(--s-4);
+    font-size: 0.9rem;
+  }
+
+  .steps details summary,
+  #discarded summary {
+    display: flex;
+    gap: var(--s-2);
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.3rem 0.7rem 0.3rem 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    transition:
+      color var(--t-micro) var(--ease-out),
+      background var(--t-micro) var(--ease-out),
+      border-color var(--t-micro) var(--ease-out);
+  }
+
+  .steps details summary::-webkit-details-marker,
+  #discarded summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .steps details summary::before,
+  #discarded summary::before {
+    --i: var(--i-chevron);
+
+    content: "";
+    flex: none;
+    width: 13px;
+    height: 13px;
+    transition: transform var(--t-micro) var(--ease-out);
+  }
+
+  .steps details[open] summary::before,
+  #discarded[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .steps details[open] summary {
+    margin-bottom: var(--s-3);
+  }
+
+  .steps details > :not(summary) {
+    max-width: var(--measure);
+    padding-left: var(--s-4);
+    margin-bottom: var(--s-2);
+    color: var(--ink-muted);
+    border-left: 2px solid var(--line);
+  }
+
+  #discarded summary strong {
+    font-weight: 500;
+  }
+
+  #discarded > :not(summary) {
+    margin-top: var(--s-4);
+  }
+
+  #discarded-list {
+    display: grid;
+    gap: var(--s-3);
+    margin: var(--s-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  #discarded-list li {
+    padding: var(--s-3) var(--s-4);
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+    background: color-mix(in oklab, var(--surface-3) 55%, transparent);
+    border-radius: var(--r-md);
+  }
+
+  /* --- the gap marker ---------------------------------------------------
+     A missing step is a piece of the sequence that was cut out, so it is
+     drawn as a cut: two severed rules, the steps resuming underneath. The
+     shape carries the meaning — this is the one place in the page where the
+     graphic is the argument, so it gets exact dashes rather than a border,
+     and a scissors glyph rather than a colour. */
+  .steps > li:has(> .gap) {
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .steps .gap {
+    position: relative;
+    padding: var(--s-5) var(--s-5) var(--s-5) calc(var(--s-5) + 34px);
+    font-size: 0.92rem;
+    color: color-mix(in oklab, var(--bad) 72%, var(--ink-2));
+    background: color-mix(in oklab, var(--bad) 7%, transparent);
+    border-radius: var(--r-md);
+  }
+
+  .steps .gap::before,
+  .steps .gap::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: 1.5px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--bad) 70%, transparent) 0 7px,
+      transparent 7px 14px
+    );
+    background-size: 14px 1.5px;
+  }
+
+  .steps .gap::before {
+    top: 0;
+  }
+
+  .steps .gap::after {
+    bottom: 0;
+  }
+
+  .steps .gap strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bad);
+  }
+
+  /* The scissors sit on the cut, so the metaphor is legible at a glance and
+     not only on reading the sentence. Aligned to the label rather than to the
+     block's centre: centred, it drifts beside the body copy and reads as a
+     bullet instead of as a marker for the whole cut. */
+  .steps .gap > strong::before {
+    content: "";
+    position: absolute;
+    top: var(--s-5);
+    left: var(--s-5);
+    width: 26px;
+    height: 26px;
+    margin-top: -5px;
+    color: var(--bad);
+    background-color: currentColor;
+    -webkit-mask: var(--i-scissors) center / 17px 17px no-repeat;
+    mask: var(--i-scissors) center / 17px 17px no-repeat;
+  }
+
+  /* --- metrics ---------------------------------------------------------- */
+  #metrics h2::before {
+    --i: var(--i-gauge);
+
+    width: 16px;
+    height: 16px;
+    border-radius: 0;
+    background-color: var(--accent);
+    -webkit-mask: var(--i) center / contain no-repeat;
+    mask: var(--i) center / contain no-repeat;
+  }
+
+  table.metrics {
+    width: 100%;
+    margin-bottom: var(--s-4);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    border-collapse: collapse;
+  }
+
+  table.metrics th {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  table.metrics th,
+  table.metrics td {
+    padding: 0.5rem 0.6rem;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--line);
+  }
+
+  table.metrics thead th {
+    border-bottom-color: var(--line-strong);
+  }
+
+  table.metrics tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  table.metrics th:first-child,
+  table.metrics td:first-child {
+    padding-left: 0;
+    text-align: left;
+    color: var(--ink);
+  }
+
+  table.metrics th:last-child,
+  table.metrics td:last-child {
+    padding-right: 0;
+  }
+
+  #metrics strong {
+    font-family: var(--font-mono);
+    font-size: 1.05em;
+    color: var(--ink);
+  }
+
+  /* --- failure ---------------------------------------------------------- */
+  .error {
+    color: color-mix(in oklab, var(--bad) 80%, var(--ink-2));
+    background: color-mix(in oklab, var(--bad) 7%, var(--surface));
+    border-color: color-mix(in oklab, var(--bad) 30%, transparent);
+  }
+
+  .error h2 {
+    color: var(--bad);
+  }
+
+  .error h2::before {
+    --i: var(--i-alert);
+
+    width: 16px;
+    height: 16px;
+    border-radius: 0;
+    background-color: var(--bad);
+    -webkit-mask: var(--i) center / contain no-repeat;
+    mask: var(--i) center / contain no-repeat;
+  }
+
+  #failure-message {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ========================================================================
+   STATES
+   ======================================================================== */
+
+@layer states {
+  .dropzone:hover {
+    background: color-mix(in oklab, var(--surface-3) 85%, transparent);
+  }
+
+  .dropzone:hover::after {
+    color: var(--accent);
+  }
+
+  .dropzone:focus-within {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  .dropzone.is-over {
+    background: color-mix(in oklab, var(--accent) 9%, var(--surface-3));
+    box-shadow: var(--glow-accent);
+  }
+
+  .dropzone.is-over::before {
+    background: repeating-linear-gradient(
+      90deg,
+      var(--accent) 0 9px,
+      transparent 9px 18px
+    );
+  }
+
+  .dropzone.is-over::after {
+    color: var(--accent);
+    transform: translateY(-3px);
+  }
+
+  #run:hover:not(:disabled) {
+    box-shadow:
+      var(--shadow-2),
+      var(--glow-accent),
+      inset 0 1px 0 rgb(255 255 255 / 26%);
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
+  #run:hover:not(:disabled)::after {
+    transform: translateX(3px);
+  }
+
+  #run:active:not(:disabled) {
+    box-shadow: var(--shadow-1), inset 0 2px 4px rgb(2 6 23 / 28%);
+    transform: translateY(0);
+  }
+
+  #run:disabled {
+    color: var(--ink-muted);
+    background-color: color-mix(in oklab, var(--ink) 8%, transparent);
+    background-image: none;
+    border-color: var(--line);
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.75;
+  }
+
+  #copy-markdown:hover {
+    background: color-mix(in oklab, var(--ink) 11%, transparent);
+    border-color: var(--ink-muted);
+    transform: translateY(-1px);
+  }
+
+  #copy-markdown:active {
+    transform: translateY(0);
+  }
+
+  .chip:hover {
+    color: var(--ink);
+    background: color-mix(in oklab, var(--accent) 16%, transparent);
+    border-color: color-mix(in oklab, var(--accent) 50%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .chip:active {
+    transform: translateY(0);
+  }
+
+  .steps > li:not(:has(> .gap)):hover {
+    border-color: color-mix(in oklab, var(--accent) 28%, var(--line));
+    box-shadow: var(--shadow-2), var(--edge-light);
+    transform: translateY(-2px);
+  }
+
+  .steps details summary:hover,
+  #discarded summary:hover {
+    color: var(--ink);
+    background: color-mix(in oklab, var(--ink) 7%, transparent);
+    border-color: var(--line-strong);
+  }
+
+  /* --- rail states, all derived from what app.js already writes --------- */
+  #stages li.running {
+    --row: var(--accent);
+  }
+
+  /* A retry is the only moment app.js fills .detail while the row is still
+     running — so the rail can report it without being told. */
+  #stages li.running:has(.detail:not(:empty)) {
+    --row: var(--warn);
+  }
+
+  #stages li.running:has(.detail:not(:empty)) .detail {
+    color: var(--warn);
+  }
+
+  #stages li:has(.time:not(:empty)) {
+    --row: var(--ok);
+  }
+
+  #stages li:has(.time:not(:empty))::before {
+    background: var(--row);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--ok) 16%, transparent);
+  }
+
+  #stages li:has(.time:not(:empty)) .name {
+    color: var(--ink-2);
+  }
+
+  #stages li.running .name {
+    color: var(--ink);
+  }
+
+  /* Replaces the old " …" text hack with something that reads as work in
+     progress rather than as punctuation. */
+  #stages li.running .name::after {
+    content: "";
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-left: var(--s-2);
+    vertical-align: -1px;
+    border: 2px solid color-mix(in oklab, var(--row) 25%, transparent);
+    border-top-color: var(--row);
+    border-radius: var(--r-pill);
+  }
+
+  #stages li.skipped {
+    opacity: 0.5;
+  }
+
+  #stages li.skipped::before {
+    background: transparent;
+    border-style: dashed;
+  }
+
+  /* Borders carry their weight when tints are not available. */
+  @media (prefers-contrast: more) {
+    .panel,
+    .steps > li,
+    .chip,
+    .badge,
+    .status {
+      border-color: var(--ink-muted);
+    }
+
+    .badge,
+    .status {
+      background: transparent;
+    }
+  }
+}
+
+/* ========================================================================
+   MOTION
+   All of it lives here, all of it inside no-preference: the reduced-motion
+   path is the final state, rendered immediately, not a faster animation.
+   ======================================================================== */
+
+@layer motion {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes rise-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(1turn);
+      }
+    }
+
+    @keyframes node-pulse {
+      0% {
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--row) 45%, transparent);
+      }
+
+      70% {
+        box-shadow: 0 0 0 9px color-mix(in oklab, var(--row) 0%, transparent);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--row) 0%, transparent);
+      }
+    }
+
+    @keyframes dash-drift {
+      to {
+        background-position-x: 14px;
+      }
+    }
+
+    header,
+    #upload {
+      animation: rise-in var(--t-enter) var(--ease-out) both;
+    }
+
+    #upload {
+      animation-delay: 70ms;
+    }
+
+    /* The result arrives as a sequence rather than a slab: 60ms apart is
+       enough to read as ordered and short enough not to feel slow. */
+    #result > * {
+      animation: rise-in var(--t-enter) var(--ease-out) both;
+    }
+
+    #result > :nth-child(2) {
+      animation-delay: 60ms;
+    }
+
+    #result > :nth-child(3) {
+      animation-delay: 120ms;
+    }
+
+    #result > :nth-child(4) {
+      animation-delay: 180ms;
+    }
+
+    #result > :nth-child(5) {
+      animation-delay: 240ms;
+    }
+
+    #result > :nth-child(6) {
+      animation-delay: 300ms;
+    }
+
+    #result > :nth-child(n + 7) {
+      animation-delay: 360ms;
+    }
+
+    .steps > li {
+      animation: rise-in var(--t-exit) var(--ease-out) both;
+    }
+
+    .steps > li:nth-child(2) {
+      animation-delay: 60ms;
+    }
+
+    .steps > li:nth-child(3) {
+      animation-delay: 120ms;
+    }
+
+    .steps > li:nth-child(4) {
+      animation-delay: 180ms;
+    }
+
+    .steps > li:nth-child(5) {
+      animation-delay: 240ms;
+    }
+
+    .steps > li:nth-child(6) {
+      animation-delay: 300ms;
+    }
+
+    .steps > li:nth-child(n + 7) {
+      animation-delay: 360ms;
+    }
+
+    #stages li.running::before {
+      animation: node-pulse 1.8s var(--ease-out) infinite;
+    }
+
+    #stages li.running .name::after {
+      animation: spin 750ms linear infinite;
+    }
+
+    /* The film-cut metaphor is offered on inspection rather than animated at
+       rest — a static informational block should not move on its own. */
+    .steps .gap:hover::before,
+    .steps .gap:hover::after,
+    .steps .gap:focus-within::before,
+    .steps .gap:focus-within::after {
+      animation: dash-drift 900ms linear infinite;
+    }
+  }
+
+  /* Belt and braces: the transitions declared in the states layer are not
+     animations, so they need switching off explicitly. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 1ms !important;
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ========================================================================
+   RESPONSIVE
+   ======================================================================== */
+
+@layer responsive {
+  /* Eight columns of measured numbers cannot honestly shrink to a phone, and
+     hiding a column would hide evidence. The table alone scrolls; the page
+     body never does. */
+  @media (width <= 44rem) {
+    #metrics table.metrics {
+      display: block;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+    }
+  }
+
+  @media (width <= 34rem) {
+    body {
+      padding: 0 var(--s-4) var(--s-8);
+    }
+
+    header {
+      padding: var(--s-7) 0 var(--s-6);
+    }
+
+    .panel {
+      padding: var(--s-5) var(--s-4);
+      border-radius: var(--r-lg);
+    }
+
+    .dropzone {
+      padding: var(--s-6) var(--s-4);
+    }
+
+    .steps > li {
+      padding: var(--s-4);
+    }
+
+    .steps .gap {
+      padding-left: calc(var(--s-4) + 30px);
+    }
+
+    .steps .gap > strong::before {
+      left: var(--s-3);
+    }
+
+    #stages li {
+      padding-left: var(--s-5);
+    }
+
+    #run {
+      justify-self: stretch;
+      justify-content: center;
+    }
+  }
+}

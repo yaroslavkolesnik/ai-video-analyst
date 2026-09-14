@@ -1,0 +1,55 @@
+node_modules/
+*.log
+*.tsbuildinfo
+
+# Secrets. .env.example is the tracked template and must never hold a real key.
+.env
+.env.local
+
+# Runtime artefacts: uploads and extracted frames are regenerated on every run.
+.tmp/
+public/frames/
+
+# Personal Claude Code overrides. .claude/settings.json is shared and stays tracked.
+.claude/settings.local.json
+
+# Tool cache. .impeccable/config.json is a real project decision and stays tracked.
+.impeccable/hook.cache.json
+
+# General-purpose Claude Code skills that came with the machine, not with this
+# project: 4.8 MB across 179 files of design tooling a reviewer has no reason to
+# read. The four skills this project actually defines stay tracked below.
+.claude/skills/*
+!.claude/skills/run-observation/
+!.claude/skills/schema-mirror/
+!.claude/skills/ground-truth-check/
+!.claude/skills/phase-report/
+
+# OS and editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# ---------------------------------------------------------------------------
+# DELIBERATELY NOT IGNORED, and why. These four paths are the submission's
+# evidence, not build output:
+#
+#   fixtures/videos/*.mp4   the brief says "Provide the recordings" (~45 MB)
+#   fixtures/timelines/     what the model observed, per recording
+#   fixtures/guides/        the produced guides
+#   fixtures/verdicts/      every grounding verdict, with its quoted evidence
+#
+# Committing them is what makes `npm run guide -- fixtures/videos/A.mp4` rebuild
+# a complete guide from a clean clone with **no API key and no network**, which
+# is the reproducibility claim in README.md and DELIVERY_NOTES.md. Ignoring them
+# would leave a reviewer with a repository that cannot demonstrate its own
+# result, and would make both documents untrue.
+#
+# If they ever do need to go, uncomment together and fix both documents:
+#   fixtures/videos/*.mp4
+#   fixtures/timelines/
+#   fixtures/guides/
+#   fixtures/verdicts/
+# ---------------------------------------------------------------------------

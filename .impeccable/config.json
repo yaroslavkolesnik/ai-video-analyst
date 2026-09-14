@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-09-13T13:37:59.315Z",
+        "reason": "user confirmed: chose the 'Google Fonts <link>' option in a question that named Inter + JetBrains Mono as the pairing; sourced from ui-ux-pro-max typography row 'Modern Dark Cinema (Inter system)', best-for developer tools"
+      }
+    ]
+  }
+}

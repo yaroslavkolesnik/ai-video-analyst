@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Screencast → How-To</title>
+    <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f7fa" media="(prefers-color-scheme: light)" />
+    <!--
+      The only dependency the page has, and it is optional: font-display=swap
+      plus a full system fallback stack in styles.css means an offline or
+      blocked load renders the complete page in system type. Nothing here is
+      a build step - the browser is the only thing that assembles this page.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Screencast → How-To</h1>
+      <p class="lede">
+        Upload a short recording of one operation in a browser app. You get numbered steps with
+        timecodes and screenshots — and every step is checked back against the frames it came from.
+      </p>
+    </header>
+
+    <main>
+      <section id="upload" class="panel">
+        <form id="upload-form">
+          <label class="dropzone" id="dropzone">
+            <input type="file" id="file" name="video" accept="video/mp4,video/webm,video/quicktime" hidden />
+            <strong id="dropzone-label">Choose a recording, or drop one here</strong>
+            <span class="hint">MP4, WebM or MOV · up to 100 MB · up to 2½ minutes · one operation</span>
+          </label>
+          <button type="submit" id="run" disabled>Build the guide</button>
+        </form>
+        <p class="hint">
+          A run takes roughly half a minute and costs a few API requests. Nothing is uploaded
+          anywhere but this machine and the model.
+        </p>
+      </section>
+
+      <section id="progress" class="panel" hidden>
+        <h2>Working</h2>
+        <ol id="stages"></ol>
+        <ul id="notes" class="notes"></ul>
+      </section>
+
+      <section id="result" hidden>
+        <div class="panel" id="summary"></div>
+
+        <div class="panel" id="questions" hidden>
+          <h2>Questions before you start</h2>
+          <ul id="question-list"></ul>
+        </div>
+
+        <div class="panel" id="warnings" hidden>
+          <h2>Warnings</h2>
+          <ul id="warning-list"></ul>
+        </div>
+
+        <div class="panel">
+          <h2>Steps</h2>
+          <video id="player" controls hidden></video>
+          <ol id="steps" class="steps"></ol>
+        </div>
+
+        <details class="panel" id="discarded" hidden>
+          <summary><strong>Abandoned attempts</strong></summary>
+          <p class="hint">
+            Tried in the recording, then replaced. Not part of the steps above — listed so the
+            correction is visible rather than silently dropped.
+          </p>
+          <ul id="discarded-list"></ul>
+        </details>
+
+        <div class="panel" id="metrics"></div>
+
+        <div class="panel">
+          <h2>Export</h2>
+          <button type="button" id="copy-markdown">Copy as Markdown</button>
+          <span id="copy-state" class="hint"></span>
+        </div>
+      </section>
+
+      <section id="failure" class="panel error" hidden>
+        <h2>That did not work</h2>
+        <p id="failure-message"></p>
+      </section>
+    </main>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

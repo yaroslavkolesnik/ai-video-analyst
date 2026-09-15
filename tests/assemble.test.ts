@@ -60,6 +60,7 @@ function guide(overrides: Partial<PhrasedGuide> = {}): PhrasedGuide {
     clarifications: [],
     unverifiable: [],
     has_success_state: true,
+    starting_state: null,
     warnings: [],
     ...overrides,
   };
@@ -129,7 +130,10 @@ describe('assembleGuide', () => {
     });
 
     expect(doc.steps).toHaveLength(2);
-    expect(doc.warnings.join(' ')).toContain('Step 2 is contradicted');
+    // The warning names what the frames did not establish, not a verdict on the
+    // step: a reader who reads 'contradicted' as 'do not do this' loses a real
+    // column, which is exactly what following A's guide by hand showed.
+    expect(doc.warnings.join(' ')).toContain('Step 2 is not confirmed by the two frames checked');
     // Here the ratio itself is what drops the status: 0.5 is under the threshold.
     expect(doc.verified_ratio).toBe(0.5);
     expect(doc.status).toBe('needs_clarification');
@@ -214,8 +218,16 @@ describe('renderGuideMarkdown', () => {
   });
 
   it('shows a badge for every step, including the unverified one', () => {
-    expect(markdown).toContain('✅ verified');
-    expect(markdown).toContain('⚠️ could not be verified');
+    expect(markdown).toContain('confirmed on frames');
+    expect(markdown).toContain('frames inconclusive');
+  });
+
+  it('states the unrecorded starting state above the steps, not as a step', () => {
+    const marker = 'Starting state was not recorded.';
+    expect(markdown).toContain(marker);
+    expect(markdown.indexOf(marker)).toBeLessThan(markdown.indexOf('## Steps'));
+    // It must never be numbered: no step heading may carry it.
+    expect(markdown).not.toMatch(/### d+. Starting state/);
   });
 
   it('puts the questions before the steps', () => {

@@ -19,11 +19,62 @@ const STATUS_LINE: Record<GuideStatus, string> = {
   declined: '⛔ **Declined** — no guide was produced from this recording.',
 };
 
+/**
+ * What the badge says is what was *established*, never a judgement on the
+ * instruction. The difference is not cosmetic: following A’s guide by hand on
+ * 2026-09-14 produced the documented result, and skipping the one step wearing
+ * the old "contradicted by the recording" badge silently dropped a column from
+ * the export. A reader who takes a verdict about two sampled frames as a verdict
+ * about the step loses something real.
+ *
+ * "not checked" is a fourth state rather than a wording change. The data has
+ * always separated "the model looked and was unsure" from "we never asked"
+ * (`unavailable_reason`), and the badge was the one place that distinction was
+ * being thrown away.
+ */
 const VERDICT_BADGE = {
-  supported: '✅ verified',
-  contradicted: '❌ contradicted by the recording',
-  unclear: '⚠️ could not be verified',
+  supported: 'confirmed on frames',
+  contradicted: "frames don't show this",
+  unclear: 'frames inconclusive',
+  not_checked: 'not checked',
 } as const;
+
+/**
+ * The starting state is the one thing a recording almost never shows: A.mp4 runs
+ * for eleven seconds before its first event, and those seconds produced nothing
+ * observable at all. So this is not derived from the timeline - there is nothing
+ * to derive it from - and it deliberately does not claim the app was in its
+ * default view. It states the limitation instead, which is true of every
+ * recording, names no control we never saw used, and is never a numbered step.
+ */
+const PRECONDITION_UNKNOWN_TITLE = 'Starting state was not recorded.';
+const PRECONDITION_UNKNOWN_BODY =
+  'This guide begins at the first visible action. If your view already has ' +
+  'filters applied, the counts shown here will differ.';
+
+const PRECONDITION_KNOWN_TITLE = 'Start from this state.';
+const PRECONDITION_KNOWN_BODY =
+  'This is what the recording showed before the first action, read off the ' +
+  'screen rather than assumed.';
+
+/** Observed when the recording showed one, and an honest gap when it did not. */
+function preconditionLine(startingState: string | null): string {
+  const observed = startingState?.trim();
+  return observed === undefined || observed === ''
+    ? `> **${PRECONDITION_UNKNOWN_TITLE}** ${PRECONDITION_UNKNOWN_BODY}`
+    : `> **${PRECONDITION_KNOWN_TITLE}** ${observed} ${PRECONDITION_KNOWN_BODY}`;
+}
+
+/** The badge alone is one phrase; a contradiction needs the sentence too. */
+const UNCONFIRMED_NOTE =
+  'Checked against two sampled frames only. The step may still be correct — ' +
+  'read this as *unconfirmed*, not as *wrong*.';
+
+/** A step we never asked about must not wear the badge of one we asked and could not settle. */
+function badgeFor(verdict: FinalStep['verification']): string {
+  if (verdict.unavailable_reason !== null) return VERDICT_BADGE.not_checked;
+  return VERDICT_BADGE[verdict.result];
+}
 
 const FLAG_LABEL: Record<StepFlag, string> = {
   silent_action: '🔇 done silently — easy to miss, and the result changes without it',
@@ -46,8 +97,13 @@ function renderStep(step: FinalStep, imageBase: string): string[] {
 
   lines.push(`### ${step.index}. ${step.instruction}`);
   lines.push('');
-  lines.push(`\`${step.timestamp_label}\` · ${VERDICT_BADGE[verdict.result]}`);
+  lines.push(`\`${step.timestamp_label}\` · ${badgeFor(verdict)}`);
   lines.push('');
+
+  if (verdict.result === 'contradicted') {
+    lines.push(UNCONFIRMED_NOTE);
+    lines.push('');
+  }
 
   for (const flag of step.flags) {
     lines.push(`> ${FLAG_LABEL[flag]}`);
@@ -121,6 +177,8 @@ export function renderGuideMarkdown(doc: GuideDocument, options: MarkdownOptions
   }
 
   if (doc.steps.length > 0) {
+    // Above the steps and outside the ordered list: it is a limitation, not a step.
+    lines.push(preconditionLine(doc.starting_state), '');
     lines.push('## Steps', '');
 
     // Missing steps are printed where they belong in the sequence, so the hole is

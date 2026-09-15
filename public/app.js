@@ -25,11 +25,26 @@ const STATUS_TEXT = {
   declined: 'Declined — no guide was produced from this recording.',
 };
 
+// The badge states what was established, not whether the step is right. Following
+// A by hand showed the difference is not cosmetic: skipping the one step wearing
+// the old "contradicted" badge silently dropped a column from the export.
+// "not checked" is a fourth state, not a rewording - unavailable_reason has always
+// separated "looked and was unsure" from "we never asked", and only the badge
+// was throwing that away.
 const BADGE_TEXT = {
-  supported: 'verified',
-  contradicted: 'contradicted',
-  unclear: 'unverified',
+  supported: 'confirmed on frames',
+  contradicted: "frames don't show this",
+  unclear: 'frames inconclusive',
+  not_checked: 'not checked',
 };
+
+const UNCONFIRMED_NOTE =
+  'Checked against two sampled frames only. The step may still be correct — ' +
+  'read this as unconfirmed, not as wrong.';
+
+function badgeState(verdict) {
+  return verdict.unavailable_reason ? 'not_checked' : verdict.result;
+}
 
 const FLAG_TEXT = {
   silent_action: 'Done silently — easy to miss, and the result changes without it.',
@@ -124,6 +139,15 @@ function renderList(panelId, listId, items, render) {
 
 function renderSteps(doc) {
   const list = el('steps');
+  // A limitation, not a step: it lives outside the ordered list on purpose.
+  const pre = el('precondition');
+  pre.hidden = doc.steps.length === 0;
+  if (doc.starting_state && doc.starting_state.trim()) {
+    pre.querySelector('.precondition-title').textContent = 'Start from this state.';
+    pre.querySelector('.precondition-body').textContent =
+      `${doc.starting_state} This is what the recording showed before the first action, ` +
+      'read off the screen rather than assumed.';
+  }
   list.replaceChildren();
 
   const gapsAfter = (index) =>
@@ -153,8 +177,11 @@ function renderSteps(doc) {
       '<div class="head">',
       `<span class="instruction"><strong>${step.index}.</strong> ${step.instruction}</span>`,
       `<button type="button" class="chip" data-seek="${step.t_start}">${step.timestamp_label}</button>`,
-      `<span class="badge ${verdict.result}">${BADGE_TEXT[verdict.result]}</span>`,
+      `<span class="badge ${badgeState(verdict)}">${BADGE_TEXT[badgeState(verdict)]}</span>`,
       '</div>',
+      verdict.result === 'contradicted'
+        ? `<p class="unconfirmed-note">${UNCONFIRMED_NOTE}</p>`
+        : '',
       flags ? `<ul class="flags">${flags}</ul>` : '',
       `<img src="${step.screenshot_url}" alt="Step ${step.index}" loading="lazy" />`,
       '<details><summary>How this step was checked</summary>',

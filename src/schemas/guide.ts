@@ -55,4 +55,11 @@ export type GuideDocument = {
   warnings: string[];
   verified_ratio: number;
   has_success_state: boolean;
+  /**
+   * The state the recording opened on, observed rather than assumed, or `null`
+   * when it never showed one. A reader needs it: A.mp4 runs for eleven seconds
+   * before its first event, so a guide built from it silently began wherever
+   * the demonstrator happened to be.
+   */
+  starting_state: string | null;
 };

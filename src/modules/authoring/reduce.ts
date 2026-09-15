@@ -42,8 +42,32 @@ function declinedGuide(reason: DeclineReason): DraftGuide {
     clarifications: [],
     unverifiable: [],
     has_success_state: false,
+    starting_state: null,
     warnings: [],
   };
+}
+
+/**
+ * The state the user found, as opposed to the ones they created.
+ *
+ * Qualifying is deliberately strict: a visible `ui_state` that comes before
+ * every action in the recording. A `ui_state` that follows an action is that
+ action's consequence, and describing it as the starting point would tell a
+ * reader to begin where the demonstrator had already finished.
+ *
+ * Returns null when the recording never showed one - which is the normal case
+ * for anything recorded before this rule reached the Observation prompt. The
+ * caller renders the honest limitation instead of inventing a default state.
+ */
+export function findStartingState(events: ObservedEvent[]): string | null {
+  const firstAction = events.find((event) => event.kind === "ui_action");
+  const cutoff = firstAction === undefined ? Number.POSITIVE_INFINITY : firstAction.t_start;
+
+  const opening = events.find(
+    (event) => event.kind === "ui_state" && event.visible && event.t_start < cutoff,
+  );
+
+  return opening === undefined ? null : opening.observation;
 }
 
 /**
@@ -291,6 +315,7 @@ export function reduceTimeline(timeline: RawTimeline): DraftGuide {
     clarifications,
     unverifiable,
     has_success_state: hasSuccessState,
+    starting_state: findStartingState(events),
     warnings,
   };
 }

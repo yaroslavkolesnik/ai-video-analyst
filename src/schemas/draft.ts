@@ -116,6 +116,14 @@ export type DraftGuide = {
   unverifiable: string[];
   has_success_state: boolean;
   /**
+   * What was already on screen when the recording opened, quoted from the
+   * first `ui_state` that precedes every action - or `null` when the recording
+   * never showed one. Never a step: it describes a state the user found, not
+   * something they did, and `reduce.ts` has no edge from a `ui_state` to the
+   * numbered list.
+   */
+  starting_state: string | null;
+  /**
    * Reader-facing warnings. Not in the originally approved `DraftGuide`, added
    * during implementation: reduce is where a warning is decided (rule 6 and the
    * minor-gap branch of rule 7), and re-deriving the same conditions in assembly

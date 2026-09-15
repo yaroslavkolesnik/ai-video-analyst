@@ -1,0 +1,105 @@
+{
+  "schema_version": "draft/1",
+  "status": "ok",
+  "decline_reason": null,
+  "steps": [
+    {
+      "index": 1,
+      "event_id": "e2",
+      "t_start": 9.5,
+      "t_end": 12,
+      "screenshot_t": 10,
+      "observation": "Select \"Shipped\" from the Status dropdown menu.",
+      "target": {
+        "element_label": "Status",
+        "element_kind": "dropdown",
+        "value": "Shipped"
+      },
+      "notes": [],
+      "flags": [],
+      "instruction": "Select \"Shipped\" from the Status dropdown menu.",
+      "verification": null
+    },
+    {
+      "index": 2,
+      "event_id": "e4",
+      "t_start": 13,
+      "t_end": 14.5,
+      "screenshot_t": 13,
+      "observation": "Select \"Last 30 days\" from the Date range dropdown menu.",
+      "target": {
+        "element_label": "Date range",
+        "element_kind": "dropdown",
+        "value": "Last 30 days"
+      },
+      "notes": [],
+      "flags": [
+        "silent_action"
+      ],
+      "instruction": "Select \"Last 30 days\" from the Date range dropdown menu.",
+      "verification": null
+    },
+    {
+      "index": 3,
+      "event_id": "e6",
+      "t_start": 16.5,
+      "t_end": 18.5,
+      "screenshot_t": 17,
+      "observation": "Click the \"Export CSV\" button above the table.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "notes": [],
+      "flags": [],
+      "instruction": "Click the \"Export CSV\" button above the table.",
+      "verification": null
+    },
+    {
+      "index": 4,
+      "event_id": "e7",
+      "t_start": 19.5,
+      "t_end": 20.8,
+      "screenshot_t": 19,
+      "observation": "Check the \"Include customer email\" checkbox in the \"Export filtered orders\" modal dialog.",
+      "target": {
+        "element_label": "Include customer email",
+        "element_kind": "checkbox",
+        "value": "checked"
+      },
+      "notes": [],
+      "flags": [
+        "silent_action"
+      ],
+      "instruction": "Check the \"Include customer email\" checkbox in the \"Export filtered orders\" modal dialog.",
+      "verification": null
+    },
+    {
+      "index": 5,
+      "event_id": "e8",
+      "t_start": 21,
+      "t_end": 22.5,
+      "screenshot_t": 21.5,
+      "observation": "Click the \"Export CSV\" confirmation button inside the modal dialog.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "notes": [],
+      "flags": [
+        "silent_action"
+      ],
+      "instruction": "Click the \"Export CSV\" confirmation button inside the modal dialog.",
+      "verification": null
+    }
+  ],
+  "discarded": [],
+  "missing_steps": [],
+  "clarifications": [],
+  "unverifiable": [],
+  "has_success_state": true,
+  "starting_state": "Initial table view displays filters set to Status: \"All statuses\", Date range: \"All time\", and indicates \"Showing 12 of 12 orders\".",
+  "warnings": []
+}

@@ -1,0 +1,159 @@
+{
+  "schema_version": "timeline/1",
+  "app_context": {
+    "app_label": "an orders management table",
+    "operation_label": "filter orders by status and date range and export to CSV",
+    "operation_confidence": 1,
+    "is_single_operation": true,
+    "is_screen_recording": true
+  },
+  "events": [
+    {
+      "id": "e1",
+      "kind": "ui_state",
+      "t_start": 0,
+      "t_end": 1,
+      "screenshot_t": 0,
+      "visible": true,
+      "spoken": false,
+      "observation": "Initial table view displays filters set to Status: \"All statuses\", Date range: \"All time\", and indicates \"Showing 12 of 12 orders\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e2",
+      "kind": "ui_action",
+      "t_start": 9.5,
+      "t_end": 12,
+      "screenshot_t": 10,
+      "visible": true,
+      "spoken": true,
+      "observation": "Select \"Shipped\" from the Status dropdown menu.",
+      "target": {
+        "element_label": "Status",
+        "element_kind": "dropdown",
+        "value": "Shipped"
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e3",
+      "kind": "ui_state",
+      "t_start": 12,
+      "t_end": 13,
+      "screenshot_t": 12,
+      "visible": true,
+      "spoken": false,
+      "observation": "The table updates to show \"Showing 6 of 12 orders\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e4",
+      "kind": "ui_action",
+      "t_start": 13,
+      "t_end": 14.5,
+      "screenshot_t": 13,
+      "visible": true,
+      "spoken": false,
+      "observation": "Select \"Last 30 days\" from the Date range dropdown menu.",
+      "target": {
+        "element_label": "Date range",
+        "element_kind": "dropdown",
+        "value": "Last 30 days"
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e5",
+      "kind": "ui_state",
+      "t_start": 14.5,
+      "t_end": 16,
+      "screenshot_t": 15,
+      "visible": true,
+      "spoken": false,
+      "observation": "The table updates to show \"Showing 4 of 12 orders\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e6",
+      "kind": "ui_action",
+      "t_start": 16.5,
+      "t_end": 18.5,
+      "screenshot_t": 17,
+      "visible": true,
+      "spoken": true,
+      "observation": "Click the \"Export CSV\" button above the table.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e7",
+      "kind": "ui_action",
+      "t_start": 19.5,
+      "t_end": 20.8,
+      "screenshot_t": 19,
+      "visible": true,
+      "spoken": false,
+      "observation": "Check the \"Include customer email\" checkbox in the \"Export filtered orders\" modal dialog.",
+      "target": {
+        "element_label": "Include customer email",
+        "element_kind": "checkbox",
+        "value": "checked"
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e8",
+      "kind": "ui_action",
+      "t_start": 21,
+      "t_end": 22.5,
+      "screenshot_t": 21.5,
+      "visible": true,
+      "spoken": false,
+      "observation": "Click the \"Export CSV\" confirmation button inside the modal dialog.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e9",
+      "kind": "success_state",
+      "t_start": 22.5,
+      "t_end": 25,
+      "screenshot_t": 23,
+      "visible": true,
+      "spoken": true,
+      "observation": "A green success banner appears displaying \"Exported 4 orders to orders-shipped-last30days.csv\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    }
+  ],
+  "global_notes": []
+}

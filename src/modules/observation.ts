@@ -92,6 +92,22 @@ STATE — the visible consequence of an action.
   took effect. If the count is not readable in the frames, say that instead —
   never compute it yourself.
 
+STARTING STATE — the first event of every recording.
+  Before you report any action, report what is already on screen when the
+  recording opens. Emit exactly ONE "ui_state" event whose t_start is the first
+  second where the interface is legible, describing the state the user found,
+  not the state they created: the value shown in each filter or control you can
+  read, and the visible count, quoted exactly ("Status: All statuses, Date
+  range: All time, Showing 12 of 12").
+
+  Report only what is legible. If a control is off screen, covered or too small
+  to read, leave it out rather than guessing; if nothing is legible at all, emit
+  no starting state. "visible" is true for this event only when you can actually
+  read those values, and it is never "spoken" unless the narrator read them out.
+
+  This event describes a state, never an action. It is not something the user
+  did and must never be phrased as an instruction.
+
 SUCCESS — only if shown.
   Emit kind "success_state" only if the recording visibly shows the operation
   completed (a downloaded file, a confirmation, a changed list). Absence of a

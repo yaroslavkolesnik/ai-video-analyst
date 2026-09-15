@@ -84,7 +84,9 @@ function groundingWarnings(steps: FinalStep[]): string[] {
   for (const step of steps) {
     if (step.verification.result === 'contradicted') {
       warnings.push(
-        `Step ${step.index} is contradicted by the recording: ${step.verification.reasoning}`,
+        `Step ${step.index} is not confirmed by the two frames checked: ` +
+          `${step.verification.reasoning} The step may still be correct - this says the frames ` +
+          `did not establish it, not that the instruction is wrong.`,
       );
     } else if (step.verification.unavailable_reason !== null) {
       warnings.push(
@@ -146,5 +148,9 @@ export function assembleGuide(input: AssembleInput): GuideDocument {
     warnings,
     verified_ratio: ratio,
     has_success_state: guide.has_success_state,
+    // Normalised rather than trusted: a phrased guide cached before this field
+    // existed carries no value at all, and `undefined` would sail past a
+    // `=== null` check and print itself into the document.
+    starting_state: guide.starting_state ?? null,
   };
 }

@@ -8,13 +8,15 @@ In an orders management table.
 
 ## Warnings
 
-- Step 4 is contradicted by the recording: In both Frame 1 and Frame 2, the 'Include customer email' checkbox remains unchecked.
+- Step 4 is not confirmed by the two frames checked: In both Frame 1 and Frame 2, the 'Include customer email' checkbox remains unchecked. The step may still be correct - this says the frames did not establish it, not that the instruction is wrong.
+
+> **Starting state was not recorded.** This guide begins at the first visible action. If your view already has filters applied, the counts shown here will differ.
 
 ## Steps
 
 ### 1. Select Shipped from the Status dropdown.
 
-`0:11` · ✅ verified
+`0:11` · confirmed on frames
 
 ![Step 1](../../public/frames/A/e1-shot.png)
 
@@ -28,7 +30,7 @@ In an orders management table.
 
 ### 2. Select Last 30 days from the Date range dropdown.
 
-`0:24` · ✅ verified
+`0:24` · confirmed on frames
 
 ![Step 2](../../public/frames/A/e5-shot.png)
 
@@ -42,7 +44,7 @@ In an orders management table.
 
 ### 3. Click the Export CSV button in the upper right corner.
 
-`0:28` · ✅ verified
+`0:28` · confirmed on frames
 
 > 🔇 done silently — easy to miss, and the result changes without it
 
@@ -58,7 +60,9 @@ In an orders management table.
 
 ### 4. Check the Include customer email checkbox inside the export modal.
 
-`0:30` · ❌ contradicted by the recording
+`0:30` · frames don't show this
+
+Checked against two sampled frames only. The step may still be correct — read this as *unconfirmed*, not as *wrong*.
 
 > 🔇 done silently — easy to miss, and the result changes without it
 
@@ -74,7 +78,7 @@ In an orders management table.
 
 ### 5. Click the Export CSV confirmation button inside the modal dialog.
 
-`0:34` · ✅ verified
+`0:34` · confirmed on frames
 
 ![Step 5](../../public/frames/A/e9-shot.png)
 

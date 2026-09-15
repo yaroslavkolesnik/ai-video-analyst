@@ -11,7 +11,7 @@ import { resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { reduceTimeline } from '../src/modules/authoring/reduce.js';
+import { findStartingState, reduceTimeline } from '../src/modules/authoring/reduce.js';
 import { RawTimelineSchema, type ObservedEvent, type RawTimeline } from '../src/schemas/timeline.js';
 
 const projectRoot = resolve(fileURLToPath(import.meta.url), '../..');
@@ -359,5 +359,46 @@ describe('video A, reduced from the real recording', () => {
     expect(draft.steps.map((step) => step.t_start)).toEqual(
       [...draft.steps.map((step) => step.t_start)].sort((a, b) => a - b),
     );
+  });
+});
+
+describe('findStartingState', () => {
+  const opening = { kind: 'ui_state' as const, observation: 'Status: All statuses, Showing 12 of 12' };
+
+  it('takes a visible ui_state that precedes every action', () => {
+    expect(
+      findStartingState([
+        event({ id: 's0', t_start: 2, ...opening }),
+        event({ id: 'a1', t_start: 11 }),
+      ]),
+    ).toBe('Status: All statuses, Showing 12 of 12');
+  });
+
+  it('ignores a ui_state that follows an action - that is its consequence', () => {
+    expect(
+      findStartingState([
+        event({ id: 'a1', t_start: 11 }),
+        event({ id: 's1', t_start: 14, ...opening }),
+      ]),
+    ).toBeNull();
+  });
+
+  it('ignores an inferred starting state: invisible is never observed', () => {
+    expect(
+      findStartingState([event({ id: 's0', t_start: 2, visible: false, ...opening }), event({ id: 'a1', t_start: 11 })]),
+    ).toBeNull();
+  });
+
+  it('is null for a recording that never showed one', () => {
+    expect(findStartingState([event({ id: 'a1', t_start: 11 })])).toBeNull();
+  });
+
+  it('never becomes a step, however early it sits', () => {
+    const draft = reduceTimeline(
+      timeline([event({ id: 's0', t_start: 2, ...opening }), event({ id: 'a1', t_start: 11 })]),
+    );
+    expect(draft.steps).toHaveLength(1);
+    expect(draft.steps.map((step) => step.event_id)).not.toContain('s0');
+    expect(draft.starting_state).toBe('Status: All statuses, Showing 12 of 12');
   });
 });

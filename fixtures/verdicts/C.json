@@ -1,0 +1,19 @@
+{
+  "schema_version": "verdicts/1",
+  "video": "C",
+  "model": "gemini-3.8-flash",
+  "entries": {
+    "143dac6488af585759a0624b58c1e609d113cb69110d8ed68deaeb9c044873bb": {
+      "result": "contradicted",
+      "evidence_text": "All statuses",
+      "reasoning": "In Frame 2, the Status dropdown still displays 'All statuses' rather than 'Shipped', and no menu is open.",
+      "cached_at": "2026-09-15T07:14:21.445Z"
+    },
+    "59f3dc8f04666dd45b00f41584bb7c47d840afe1492e23b328e25e50d8efcaf3": {
+      "result": "supported",
+      "evidence_text": "Export CSV",
+      "reasoning": "The cursor is positioned over and clicks the 'Export CSV' button within the modal dialog.",
+      "cached_at": "2026-09-15T07:25:54.142Z"
+    }
+  }
+}

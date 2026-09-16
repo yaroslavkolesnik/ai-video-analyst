@@ -1,0 +1,158 @@
+{
+  "schema_version": "timeline/1",
+  "app_context": {
+    "app_label": "an orders management table",
+    "operation_label": "export orders to CSV and mark an order as shipped",
+    "operation_confidence": 0.95,
+    "is_single_operation": false,
+    "is_screen_recording": true
+  },
+  "events": [
+    {
+      "id": "e1",
+      "kind": "ui_state",
+      "t_start": 0,
+      "t_end": 2,
+      "screenshot_t": 0,
+      "visible": true,
+      "spoken": false,
+      "observation": "Initial view displays Status: All statuses, Date range: All time, and 'Showing 12 of 12 orders'.",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e2",
+      "kind": "ui_action",
+      "t_start": 2,
+      "t_end": 4,
+      "screenshot_t": 3,
+      "visible": true,
+      "spoken": false,
+      "observation": "Click the 'Export CSV' button in the upper right.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e3",
+      "kind": "ui_action",
+      "t_start": 4,
+      "t_end": 5,
+      "screenshot_t": 4,
+      "visible": true,
+      "spoken": false,
+      "observation": "In the 'Export filtered orders' modal, click the 'Export CSV' button.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e4",
+      "kind": "success_state",
+      "t_start": 5,
+      "t_end": 7,
+      "screenshot_t": 5,
+      "visible": true,
+      "spoken": false,
+      "observation": "A success banner appears reading 'Exported 12 orders to orders-all-time.csv'.",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e5",
+      "kind": "ui_action",
+      "t_start": 7,
+      "t_end": 10,
+      "screenshot_t": 8,
+      "visible": true,
+      "spoken": false,
+      "observation": "Select 'Pending' from the Status dropdown filter.",
+      "target": {
+        "element_label": "Status",
+        "element_kind": "dropdown",
+        "value": "Pending"
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e6",
+      "kind": "ui_state",
+      "t_start": 10,
+      "t_end": 11,
+      "screenshot_t": 10,
+      "visible": true,
+      "spoken": false,
+      "observation": "The table filters to pending orders, displaying 'Showing 4 of 12 orders'.",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e7",
+      "kind": "ui_action",
+      "t_start": 11,
+      "t_end": 12,
+      "screenshot_t": 11,
+      "visible": true,
+      "spoken": false,
+      "observation": "Click the 'Mark shipped' button on the row for order ORD-1035 (Jonas Weber).",
+      "target": {
+        "element_label": "Mark shipped",
+        "element_kind": "button",
+        "value": null
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e8",
+      "kind": "ui_state",
+      "t_start": 12,
+      "t_end": 14,
+      "screenshot_t": 12,
+      "visible": true,
+      "spoken": false,
+      "observation": "Order ORD-1035 disappears from the list, updating the count to 'Showing 3 of 12 orders'.",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 1
+    },
+    {
+      "id": "e9",
+      "kind": "gap",
+      "t_start": 16,
+      "t_end": 18,
+      "screenshot_t": 18,
+      "visible": false,
+      "spoken": false,
+      "observation": "The page reloads without a visible click on the reload button. The Status filter resets to 'All statuses', displaying 'Showing 12 of 12 orders', where order ORD-1035 (Jonas Weber) now shows status 'Shipped'.",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.9
+    }
+  ],
+  "global_notes": [
+    "The recording contains two distinct operations: exporting orders to CSV and updating an order status from Pending to Shipped.",
+    "There is no narrator audio track."
+  ]
+}

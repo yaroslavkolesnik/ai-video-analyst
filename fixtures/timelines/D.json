@@ -1,0 +1,164 @@
+{
+  "schema_version": "timeline/1",
+  "app_context": {
+    "app_label": "an orders management table",
+    "operation_label": "filter orders and export to CSV",
+    "operation_confidence": 0.95,
+    "is_single_operation": true,
+    "is_screen_recording": true
+  },
+  "events": [
+    {
+      "id": "e1",
+      "kind": "ui_state",
+      "t_start": 0,
+      "t_end": 1,
+      "screenshot_t": 0,
+      "visible": true,
+      "spoken": false,
+      "observation": "Initial state: Status is \"All statuses\", Date range is \"All time\", Search customer is empty, and count shows \"Showing 12 of 12 orders\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.98
+    },
+    {
+      "id": "e2",
+      "kind": "ui_action",
+      "t_start": 6,
+      "t_end": 8,
+      "screenshot_t": 7,
+      "visible": true,
+      "spoken": true,
+      "observation": "The Status dropdown is selected and set to \"Pending\".",
+      "target": {
+        "element_label": "Status",
+        "element_kind": "dropdown",
+        "value": "Pending"
+      },
+      "superseded_by": null,
+      "conflict": {
+        "spoken_claim": "I am setting the status to Shipped.",
+        "screen_shows": "Status selected is Pending."
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "e3",
+      "kind": "ui_state",
+      "t_start": 8,
+      "t_end": 9,
+      "screenshot_t": 8,
+      "visible": true,
+      "spoken": false,
+      "observation": "The orders table updates to show \"Showing 4 of 12 orders\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.95
+    },
+    {
+      "id": "e4",
+      "kind": "ui_action",
+      "t_start": 10,
+      "t_end": 12,
+      "screenshot_t": 11,
+      "visible": true,
+      "spoken": true,
+      "observation": "The Date range dropdown is clicked and changed to \"Last 30 days\".",
+      "target": {
+        "element_label": "Date range",
+        "element_kind": "dropdown",
+        "value": "Last 30 days"
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.95
+    },
+    {
+      "id": "e5",
+      "kind": "ui_state",
+      "t_start": 12,
+      "t_end": 13,
+      "screenshot_t": 12,
+      "visible": true,
+      "spoken": false,
+      "observation": "The orders table updates to show \"Showing 3 of 12 orders\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.95
+    },
+    {
+      "id": "e6",
+      "kind": "ui_action",
+      "t_start": 13,
+      "t_end": 14,
+      "screenshot_t": 13,
+      "visible": true,
+      "spoken": true,
+      "observation": "The \"Export CSV\" button at the top right of the table is clicked, opening a modal titled \"Export filtered orders\".",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.95
+    },
+    {
+      "id": "e7",
+      "kind": "ui_action",
+      "t_start": 15,
+      "t_end": 16,
+      "screenshot_t": 15,
+      "visible": true,
+      "spoken": false,
+      "observation": "The \"Include customer email\" checkbox in the export modal is checked.",
+      "target": {
+        "element_label": "Include customer email",
+        "element_kind": "checkbox",
+        "value": "checked"
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.95
+    },
+    {
+      "id": "e8",
+      "kind": "ui_action",
+      "t_start": 16,
+      "t_end": 17,
+      "screenshot_t": 16,
+      "visible": true,
+      "spoken": false,
+      "observation": "The \"Export CSV\" button inside the export modal is clicked.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.95
+    },
+    {
+      "id": "e9",
+      "kind": "success_state",
+      "t_start": 17,
+      "t_end": 19,
+      "screenshot_t": 18,
+      "visible": true,
+      "spoken": true,
+      "observation": "A green success banner appears stating \"Exported 3 orders to orders-pending-last30days.csv\".",
+      "target": null,
+      "superseded_by": null,
+      "conflict": null,
+      "confidence": 0.95
+    }
+  ],
+  "global_notes": [
+    "The user set the Status filter to Pending despite verbally stating 'I am setting the status to Shipped'."
+  ]
+}

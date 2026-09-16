@@ -8,57 +8,57 @@ In an orders management table.
 
 ## Warnings
 
-- Step 4 is not confirmed by the two frames checked: In both Frame 1 and Frame 2, the 'Include customer email' checkbox remains unchecked. The step may still be correct - this says the frames did not establish it, not that the instruction is wrong.
+- Step 4 is not confirmed by the two frames checked: Between Frame 1 and Frame 2, the checkbox labeled 'Include customer email' remains unchecked despite the cursor hovering over it. The step may still be correct - this says the frames did not establish it, not that the instruction is wrong.
 
-> **Starting state was not recorded.** This guide begins at the first visible action. If your view already has filters applied, the counts shown here will differ.
+> **Start from this state.** The orders table is displayed with Status set to 'All statuses', Date range set to 'All time', and displaying 'Showing 12 of 12 orders'. This is what the recording showed before the first action, read off the screen rather than assumed.
 
 ## Steps
 
-### 1. Select Shipped from the Status dropdown.
+### 1. Select 'Shipped' from the Status dropdown filter.
 
 `0:11` · confirmed on frames
 
-![Step 1](../../public/frames/A/e1-shot.png)
+![Step 1](../../public/frames/A/e2-shot.png)
 
 <details><summary>How this step was checked</summary>
 
 - **Read from the screen:** “Shipped”
-- **Verdict:** Frame 1 shows the Status dropdown set to 'All statuses', and Frame 2 shows 'Shipped' selected in the Status dropdown, filtering the orders.
-- **Frames:** `frames/A/e1-shot.png`, `frames/A/e1-after.png`
+- **Verdict:** In Frame 1, the Status dropdown is set to 'All statuses'. In Frame 2, the Status dropdown has been changed to 'Shipped', filtering the table to only show shipped orders.
+- **Frames:** `frames/A/e2-shot.png`, `frames/A/e2-after.png`
 
 </details>
 
-### 2. Select Last 30 days from the Date range dropdown.
+### 2. Select 'Last 30 days' from the Date range dropdown filter.
 
-`0:24` · confirmed on frames
+`0:23` · confirmed on frames
 
-![Step 2](../../public/frames/A/e5-shot.png)
+![Step 2](../../public/frames/A/e6-shot.png)
 
 <details><summary>How this step was checked</summary>
 
 - **Read from the screen:** “Last 30 days”
-- **Verdict:** Frame 1 shows the Date range dropdown set to 'Last 7 days', and Frame 2 shows that 'Last 30 days' has been selected, updating the order results.
-- **Frames:** `frames/A/e5-shot.png`, `frames/A/e5-after.png`
+- **Verdict:** Frame 1 shows the 'Date range' dropdown set to 'Last 7 days', while Frame 2 shows it successfully updated to 'Last 30 days'.
+- **Frames:** `frames/A/e6-shot.png`, `frames/A/e6-after.png`
 
 </details>
 
-### 3. Click the Export CSV button in the upper right corner.
+### 3. Click the 'Export CSV' button.
 
 `0:28` · confirmed on frames
 
 > 🔇 done silently — easy to miss, and the result changes without it
 
-![Step 3](../../public/frames/A/e7-shot.png)
+![Step 3](../../public/frames/A/e8-shot.png)
 
 <details><summary>How this step was checked</summary>
 
 - **Read from the screen:** “Export CSV”
-- **Verdict:** Frame 1 shows the 'Export CSV' button in the upper right corner, and Frame 2 shows the cursor clicking it, which opens the 'Export filtered orders' modal.
-- **Frames:** `frames/A/e7-shot.png`, `frames/A/e7-after.png`
+- **Verdict:** Frame 1 displays the 'Export CSV' button in the upper right corner, and Frame 2 shows the resulting 'Export filtered orders' modal dialog opened.
+- **Frames:** `frames/A/e8-shot.png`, `frames/A/e8-after.png`
 
 </details>
 
-### 4. Check the Include customer email checkbox inside the export modal.
+### 4. Click the 'Include customer email' checkbox inside the modal dialog to check it.
 
 `0:30` · frames don't show this
 
@@ -66,27 +66,27 @@ Checked against two sampled frames only. The step may still be correct — read 
 
 > 🔇 done silently — easy to miss, and the result changes without it
 
-![Step 4](../../public/frames/A/e8-shot.png)
+![Step 4](../../public/frames/A/e9-shot.png)
 
 <details><summary>How this step was checked</summary>
 
 - **Read from the screen:** “Include customer email”
-- **Verdict:** In both Frame 1 and Frame 2, the 'Include customer email' checkbox remains unchecked.
-- **Frames:** `frames/A/e8-shot.png`, `frames/A/e8-after.png`
+- **Verdict:** Between Frame 1 and Frame 2, the checkbox labeled 'Include customer email' remains unchecked despite the cursor hovering over it.
+- **Frames:** `frames/A/e9-shot.png`, `frames/A/e9-after.png`
 
 </details>
 
-### 5. Click the Export CSV confirmation button inside the modal dialog.
+### 5. Click the 'Export CSV' button inside the modal dialog.
 
-`0:34` · confirmed on frames
+`0:33` · confirmed on frames
 
-![Step 5](../../public/frames/A/e9-shot.png)
+![Step 5](../../public/frames/A/e10-shot.png)
 
 <details><summary>How this step was checked</summary>
 
 - **Read from the screen:** “Export CSV”
-- **Verdict:** The frames show the mouse cursor positioned over and clicking the 'Export CSV' button within the 'Export filtered orders' modal dialog.
-- **Frames:** `frames/A/e9-shot.png`, `frames/A/e9-after.png`
+- **Verdict:** The cursor is positioned directly over and clicks the 'Export CSV' button in the 'Export filtered orders' modal dialog.
+- **Frames:** `frames/A/e10-shot.png`, `frames/A/e10-after.png`
 
 </details>
 
@@ -96,8 +96,8 @@ These were tried in the recording and then replaced. They are **not** part of th
 
 <details><summary>Show what was tried</summary>
 
-- At `0:17`: Select 'Last 7 days' from the Date range dropdown.
-  - Replaced by: Select 'Last 30 days' from the Date range dropdown, replacing 'Last 7 days'.
+- At `0:17`: The user selects 'Last 7 days' from the Date range dropdown filter.
+  - Replaced by: The user selects 'Last 30 days' from the Date range dropdown filter.
 
 </details>
 

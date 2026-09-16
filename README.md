@@ -56,7 +56,7 @@ This is the fastest way to see that the project does what it claims, and it
 costs nothing.
 
 ```bash
-npm test                                 # 76 tests, fully offline
+npm test                                 # 82 tests, fully offline
 npm run guide -- fixtures/videos/A.mp4   # 0 API requests, ~2 s
 ```
 
@@ -130,7 +130,7 @@ src/
   config/               thresholds.ts, pricing.ts (every rate carries its source)
 public/                 index.html, app.js, styles.css — no framework, no build step
 fixtures/               videos/ timelines/ guides/ verdicts/ ground-truth/ demo-app/
-tests/                  76 tests, all offline
+tests/                  82 tests, all offline
 ```
 
 ## Test set

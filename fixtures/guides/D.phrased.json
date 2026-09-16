@@ -1,0 +1,113 @@
+{
+  "schema_version": "draft/1",
+  "status": "needs_clarification",
+  "decline_reason": null,
+  "steps": [
+    {
+      "index": 1,
+      "event_id": "e2",
+      "t_start": 6,
+      "t_end": 8,
+      "screenshot_t": 7,
+      "observation": "The Status dropdown is selected and set to \"Pending\".",
+      "target": {
+        "element_label": "Status",
+        "element_kind": "dropdown",
+        "value": "Pending"
+      },
+      "notes": [],
+      "flags": [
+        "conflict"
+      ],
+      "instruction": "Select \"Pending\" from the Status dropdown.",
+      "verification": null
+    },
+    {
+      "index": 2,
+      "event_id": "e4",
+      "t_start": 10,
+      "t_end": 12,
+      "screenshot_t": 11,
+      "observation": "The Date range dropdown is clicked and changed to \"Last 30 days\".",
+      "target": {
+        "element_label": "Date range",
+        "element_kind": "dropdown",
+        "value": "Last 30 days"
+      },
+      "notes": [],
+      "flags": [],
+      "instruction": "Change the Date range dropdown to \"Last 30 days\".",
+      "verification": null
+    },
+    {
+      "index": 3,
+      "event_id": "e6",
+      "t_start": 13,
+      "t_end": 14,
+      "screenshot_t": 13,
+      "observation": "The \"Export CSV\" button at the top right of the table is clicked, opening a modal titled \"Export filtered orders\".",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "notes": [],
+      "flags": [],
+      "instruction": "Click the \"Export CSV\" button at the top right of the table.",
+      "verification": null
+    },
+    {
+      "index": 4,
+      "event_id": "e7",
+      "t_start": 15,
+      "t_end": 16,
+      "screenshot_t": 15,
+      "observation": "The \"Include customer email\" checkbox in the export modal is checked.",
+      "target": {
+        "element_label": "Include customer email",
+        "element_kind": "checkbox",
+        "value": "checked"
+      },
+      "notes": [],
+      "flags": [
+        "silent_action"
+      ],
+      "instruction": "Check the \"Include customer email\" checkbox in the export modal.",
+      "verification": null
+    },
+    {
+      "index": 5,
+      "event_id": "e8",
+      "t_start": 16,
+      "t_end": 17,
+      "screenshot_t": 16,
+      "observation": "The \"Export CSV\" button inside the export modal is clicked.",
+      "target": {
+        "element_label": "Export CSV",
+        "element_kind": "button",
+        "value": null
+      },
+      "notes": [],
+      "flags": [
+        "silent_action"
+      ],
+      "instruction": "Click the \"Export CSV\" button inside the export modal.",
+      "verification": null
+    }
+  ],
+  "discarded": [],
+  "missing_steps": [],
+  "clarifications": [
+    {
+      "event_id": "e2",
+      "t": 6,
+      "question": "At 0:06 the narrator said \"I am setting the status to Shipped.\" but the screen shows \"Status selected is Pending.\". Which was intended?",
+      "spoken_claim": "I am setting the status to Shipped.",
+      "screen_shows": "Status selected is Pending."
+    }
+  ],
+  "unverifiable": [],
+  "has_success_state": true,
+  "starting_state": "Initial state: Status is \"All statuses\", Date range is \"All time\", Search customer is empty, and count shows \"Showing 12 of 12 orders\".",
+  "warnings": []
+}

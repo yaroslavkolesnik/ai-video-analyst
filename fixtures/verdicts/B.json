@@ -1,0 +1,37 @@
+{
+  "schema_version": "verdicts/1",
+  "video": "B",
+  "model": "gemini-3.8-flash",
+  "entries": {
+    "e7c077f3d22d3b0b64b9b7a0fc66441e214d39e04aba2aa761a8f934ea45ecd9": {
+      "result": "unclear",
+      "evidence_text": "All time",
+      "reasoning": "Between Frame 1 and Frame 2, the cursor moves toward the Date range dropdown, but the dropdown is not yet opened and still displays 'All time'. The frames capture the moment before the selection occurs.",
+      "cached_at": "2026-09-16T07:59:26.034Z"
+    },
+    "ef17277ff4cce9f44e60ab63e09764e627cc954b2a4bce876bf0177962b4ab69": {
+      "result": "contradicted",
+      "evidence_text": "All statuses",
+      "reasoning": "In Frame 2, the Status dropdown still displays 'All statuses' rather than 'Pending', meaning the selection was not made.",
+      "cached_at": "2026-09-16T07:59:29.297Z"
+    },
+    "453cf778e52f218aec5636354b967f78e14a7c4e0ed44c45bc47c01b6321dc29": {
+      "result": "supported",
+      "evidence_text": "Export CSV",
+      "reasoning": "Frame 1 shows the 'Export CSV' button in the upper right, and Frame 2 shows the cursor hovering over and clicking it.",
+      "cached_at": "2026-09-16T07:59:35.396Z"
+    },
+    "1fa305cdf04fbed527823aecb45b7650bff177f41db9baf5f98581e1343fd537": {
+      "result": "unclear",
+      "evidence_text": "Include customer email",
+      "reasoning": "The frames show the modal opening and the cursor hovering over the unchecked 'Include customer email' checkbox, but capture the wrong moment to confirm whether the checkbox was actually checked.",
+      "cached_at": "2026-09-16T07:59:53.246Z"
+    },
+    "41f9694119cde53404d078f3bb9b6c0791a4bf08a5e4e529c175ef510776b53f": {
+      "result": "supported",
+      "evidence_text": "Export CSV",
+      "reasoning": "The frames show the mouse cursor positioned over and clicking the 'Export CSV' button within the 'Export filtered orders' modal dialog.",
+      "cached_at": "2026-09-16T07:59:56.596Z"
+    }
+  }
+}

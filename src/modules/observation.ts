@@ -26,7 +26,7 @@ import {
   type RawTimeline,
 } from '../schemas/timeline.js';
 
-export const OBSERVATION_MODEL = 'gemini-3.7-flash';
+export const OBSERVATION_MODEL = 'gemini-3.8-flash';
 
 /**
  * One sampled frame per second. Anything denser multiplies video tokens without

@@ -89,7 +89,7 @@ describe('MetricsCollector', () => {
     metrics.begin('phrasing')({ model: 'gemini-3.7-flash', inputTokens: 10, outputTokens: 10 });
 
     expect(metrics.finish().pricing.checkedOn).toBe('2026-09-12');
-    expect(metrics.finish().pricing.note).toContain('free credits are not a zero operating cost');
+    expect(metrics.finish().pricing.note).toContain('standard API pricing rates');
   });
 
   it('formats a read-out that names the borrowed rate', () => {

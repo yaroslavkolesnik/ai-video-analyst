@@ -1,0 +1,37 @@
+{
+  "schema_version": "verdicts/1",
+  "video": "D",
+  "model": "gemini-3.8-flash",
+  "entries": {
+    "2054a74ee9b6eaf5ea0a29ab5d714a4000fc93d6461a066a9fa6827a5ef2e361": {
+      "result": "contradicted",
+      "evidence_text": "All statuses",
+      "reasoning": "In Frame 2, the Status dropdown still displays 'All statuses' rather than 'Pending', and no dropdown options are visible.",
+      "cached_at": "2026-09-16T07:56:26.681Z"
+    },
+    "23ea55c66a5986f53d2fc39f612dca3f86b2a916358e8541af79f2e6075b6438": {
+      "result": "unclear",
+      "evidence_text": "All time",
+      "reasoning": "Frame 2 shows the Date range dropdown focused, but its value remains 'All time' and no option for 'Last 30 days' is shown yet, indicating the frame was captured at the wrong moment before the selection occurred.",
+      "cached_at": "2026-09-16T07:56:30.687Z"
+    },
+    "14fafcc0a84f9f56715e9e158c16ce71c32caa69a733c632148471bbfc478e0d": {
+      "result": "contradicted",
+      "evidence_text": "Export CSV",
+      "reasoning": "Between Frame 1 and Frame 2, the cursor moves into the 'Search customer' input field rather than clicking the 'Export CSV' button.",
+      "cached_at": "2026-09-16T07:56:35.033Z"
+    },
+    "ebfef101c46e70f5e41344447dee64dd562ded1dc672ba2faf8b72b5fcc6f6cf": {
+      "result": "supported",
+      "evidence_text": "Include customer email",
+      "reasoning": "The export modal displays the \"Include customer email\" checkbox control, and Frame 2 shows the cursor hovering over it.",
+      "cached_at": "2026-09-16T07:56:44.796Z"
+    },
+    "a9729bdbacc14361ce6532edffda657b7b7389d2d3eea086c02a860c52dbb862": {
+      "result": "supported",
+      "evidence_text": "Export CSV",
+      "reasoning": "Frame 2 shows the cursor clicking the 'Export CSV' button within the 'Export filtered orders' modal dialog.",
+      "cached_at": "2026-09-16T07:56:48.905Z"
+    }
+  }
+}

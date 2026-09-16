@@ -5,11 +5,11 @@
   "steps": [
     {
       "index": 1,
-      "event_id": "e1",
-      "t_start": 11.5,
+      "event_id": "e2",
+      "t_start": 11,
       "t_end": 14,
       "screenshot_t": 12,
-      "observation": "Select 'Shipped' from the Status dropdown.",
+      "observation": "The user selects 'Shipped' from the Status dropdown filter.",
       "target": {
         "element_label": "Status",
         "element_kind": "dropdown",
@@ -17,16 +17,16 @@
       },
       "notes": [],
       "flags": [],
-      "instruction": "Select Shipped from the Status dropdown.",
+      "instruction": "Select 'Shipped' from the Status dropdown filter.",
       "verification": null
     },
     {
       "index": 2,
-      "event_id": "e5",
-      "t_start": 24,
+      "event_id": "e6",
+      "t_start": 23,
       "t_end": 26,
-      "screenshot_t": 24.5,
-      "observation": "Select 'Last 30 days' from the Date range dropdown, replacing 'Last 7 days'.",
+      "screenshot_t": 24,
+      "observation": "The user selects 'Last 30 days' from the Date range dropdown filter.",
       "target": {
         "element_label": "Date range",
         "element_kind": "dropdown",
@@ -34,16 +34,16 @@
       },
       "notes": [],
       "flags": [],
-      "instruction": "Select Last 30 days from the Date range dropdown.",
+      "instruction": "Select 'Last 30 days' from the Date range dropdown filter.",
       "verification": null
     },
     {
       "index": 3,
-      "event_id": "e7",
-      "t_start": 28.5,
-      "t_end": 29.5,
-      "screenshot_t": 28.5,
-      "observation": "Click the 'Export CSV' button in the upper right corner to open the export modal.",
+      "event_id": "e8",
+      "t_start": 28,
+      "t_end": 30,
+      "screenshot_t": 28,
+      "observation": "The user clicks the 'Export CSV' button, opening the 'Export filtered orders' modal dialog.",
       "target": {
         "element_label": "Export CSV",
         "element_kind": "button",
@@ -53,35 +53,35 @@
       "flags": [
         "silent_action"
       ],
-      "instruction": "Click the Export CSV button in the upper right corner.",
+      "instruction": "Click the 'Export CSV' button.",
       "verification": null
     },
     {
       "index": 4,
-      "event_id": "e8",
-      "t_start": 30.5,
+      "event_id": "e9",
+      "t_start": 30,
       "t_end": 32,
       "screenshot_t": 31,
-      "observation": "Check the 'Include customer email' checkbox inside the export modal.",
+      "observation": "The user clicks the 'Include customer email' checkbox inside the modal dialog to check it.",
       "target": {
         "element_label": "Include customer email",
         "element_kind": "checkbox",
-        "value": "checked"
+        "value": "true"
       },
       "notes": [],
       "flags": [
         "silent_action"
       ],
-      "instruction": "Check the Include customer email checkbox inside the export modal.",
+      "instruction": "Click the 'Include customer email' checkbox inside the modal dialog to check it.",
       "verification": null
     },
     {
       "index": 5,
-      "event_id": "e9",
-      "t_start": 34.5,
+      "event_id": "e10",
+      "t_start": 33,
       "t_end": 36,
       "screenshot_t": 35,
-      "observation": "Click the 'Export CSV' confirmation button inside the modal dialog.",
+      "observation": "The user clicks the 'Export CSV' button inside the modal dialog.",
       "target": {
         "element_label": "Export CSV",
         "element_kind": "button",
@@ -89,22 +89,23 @@
       },
       "notes": [],
       "flags": [],
-      "instruction": "Click the Export CSV confirmation button inside the modal dialog.",
+      "instruction": "Click the 'Export CSV' button inside the modal dialog.",
       "verification": null
     }
   ],
   "discarded": [
     {
-      "event_id": "e3",
-      "t_start": 17.5,
-      "observation": "Select 'Last 7 days' from the Date range dropdown.",
-      "superseded_by_event_id": "e5",
-      "superseded_by_observation": "Select 'Last 30 days' from the Date range dropdown, replacing 'Last 7 days'."
+      "event_id": "e4",
+      "t_start": 17,
+      "observation": "The user selects 'Last 7 days' from the Date range dropdown filter.",
+      "superseded_by_event_id": "e6",
+      "superseded_by_observation": "The user selects 'Last 30 days' from the Date range dropdown filter."
     }
   ],
   "missing_steps": [],
   "clarifications": [],
   "unverifiable": [],
   "has_success_state": true,
+  "starting_state": "The orders table is displayed with Status set to 'All statuses', Date range set to 'All time', and displaying 'Showing 12 of 12 orders'.",
   "warnings": []
 }

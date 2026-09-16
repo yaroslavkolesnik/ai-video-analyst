@@ -39,9 +39,7 @@ export const PRICING: Readonly<Record<string, ModelPricing>> = {
 };
 
 export const PRICING_NOTE =
-  'List price. This run executed on the free tier, where these requests were billed at $0 - ' +
-  'the figure is what the same work costs at published rates, because free credits are not a ' +
-  'zero operating cost. Hosting is counted separately and is not included here.';
+  'This run executed on the Paid Tier. The estimated cost is calculated based on standard API pricing rates.';
 
 export type PricedUsage = {
   costUsd: number;

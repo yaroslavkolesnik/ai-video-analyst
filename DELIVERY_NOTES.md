@@ -4,11 +4,19 @@
 browser app; get a numbered guide with timecodes and screenshots, where every
 step has been checked back against the frames it came from.
 
-> **Status.** Recordings A and C have been run end to end. **B, D and E are
-> cancelled by decision, not by accident**: the free tier bills failed `503`s as
-> requests, one 29-second video consumed a model's entire day on 2026-09-15, and
-> the remaining allowance is reserved for processing a new recording live in the
-> walkthrough — see *Infrastructure limits* in §3. **No number in this document is
+> **Status.** Deployed and running at **https://ai-video-analyst.onrender.com**.
+> Recordings A and C have been run end to end on the free tier, and a new,
+> previously unseen recording (saving a Word document) was processed live on the
+> deployed service after the project moved to the **Gemini Paid Tier** — 5
+> requests, 0 retries, 1.45 ¢. The free tier was the blocker: it bills failed
+> `503`s as requests, and one 29-second video consumed a model's entire day on
+> 2026-09-15 (§3, *Free tier → Paid Tier*). With the blocker gone, **B, D, E and
+> A's confirming re-run were run on 2026-09-16**: 22 requests, 0 retries, 8.2 ¢
+> for all four. E and D met their core expectations; **A's re-run and B did not**
+> — the `t_end` timing defect survived its prompt fix, and on D grounding confirmed
+> a checkbox that its own frame shows unticked. §2 records all of it. Two demo videos — the live Paid Tier
+> run, and a free-tier run surviving a `503` — are attached to the submission form
+> as local files. **No number in this document is
 > estimated and presented as measured**; where a figure is extrapolated, it says so
 > on the line, where a measurement was lost it says that, and where a recording
 > failed its pre-registered expectation it is recorded as a failure — recording C
@@ -119,11 +127,11 @@ to it, so an expectation cannot quietly become a rationalised result.
 
 | # | Recording | What it proves | Expected | Actual |
 |---|---|---|---|---|
-| **A** | Filter → mistaken date range → corrected → **silent** checkbox → export | base flow, silent action, correction, visible success | `ok`, 5 steps, `verified_ratio 1.0` | `ok_with_warnings`, 5 steps, `verified_ratio 0.80` — **see below** |
-| B | Same operation, one setting changed, filters reordered | regression: the guide must differ in exactly one place | `ok`, differs from A only in the status value and step order | `[TBD]` — not attempted: `gemini-3.7-flash` answered `503` on every attempt at A on 2026-09-15, and B is only meaningful on the same model as A. Now also covered by the reservation below |
+| **A** | Filter → mistaken date range → corrected → **silent** checkbox → export | base flow, silent action, correction, visible success | `ok`, 5 steps, `verified_ratio 1.0` | 2026-09-13 (3.7-flash): `ok_with_warnings`, 5 steps, `verified_ratio 0.80`. **Confirming re-run 2026-09-16 (3.8-flash): identical outcome — FAILED to reach `1.0`**, step 4 again unconfirmed — **see below** |
+| B | Same operation, one setting changed, filters reordered | regression: the guide must differ in exactly one place | `ok`, differs from A only in the status value and step order | **FAILED on status** — steps match exactly (date range first, Pending, empty `discarded`, banner "Exported 3 orders"), but `needs_clarification` with `verified_ratio 0.40`: three real actions left unconfirmed by early frames — **see below** |
 | **C** | A with the middle cut out | flag a missing critical step, invent nothing | `needs_clarification`, critical `MissingStep`, **no invented click** | **FAILED** — draft `status: ok`, 5 steps, `missing_steps: []`, and step 2 is a click the recording never shows — **see below** |
-| D | Narration says "Shipped", screen shows Pending | not merely summarising speech | `needs_clarification` + clarification quoting both sides | **Cancelled** — allowance deliberately reserved for the live demo (see *Infrastructure limits*) |
-| E | Two unrelated operations in one take | refuse rather than guess | `declined`, `multiple_operations`, **grounding never called** | **Cancelled** — allowance deliberately reserved for the live demo. One attempt was made: ingestion succeeded (7.7 s, 21.1 s of video), Observation stopped at `DailyQuotaExhaustedError` |
+| D | Narration says "Shipped", screen shows Pending | not merely summarising speech | `needs_clarification` + clarification quoting both sides | **Passed on the narration check, with a grounding false positive** — `needs_clarification`, step 1 reads Pending, one clarification quoting "Shipped" vs "Pending"; `verified_ratio 0.40`, and step 4 marked *confirmed* on a frame showing the checkbox unticked — **see below** |
+| E | Two unrelated operations in one take | refuse rather than guess | `declined`, `multiple_operations`, **grounding never called** | **Passed** — `declined`, `multiple_operations`, phrasing/frames/grounding all skipped: 1 request in total, 1.07 ¢ |
 
 ### Recording A — and the bug the product found in itself
 
@@ -165,11 +173,24 @@ just proven useful. Instead the *cause* was fixed, in the Observation prompt:
 > which reads as if the action never happened. **Err late, never early.**
 
 Recorded in `ARCHITECTURE.md` as a dated amendment with the evidence that caused
-it. **The confirming re-run has still not executed.** It was attempted twice on
-2026-09-15 (`--refresh`, `gemini-3.7-flash`, four minutes apart) and both
-attempts died at the Observation stage with `503 UNAVAILABLE` on all four
-retries — eight requests, no timeline. Expected outcome remains
-`verified_ratio 1.0` plus a `starting_state` from the new prompt block. `[TBD]`
+it. The confirming re-run was attempted twice on 2026-09-15 (`--refresh`,
+`gemini-3.7-flash`) and both attempts died on `503 UNAVAILABLE`. **It ran on
+2026-09-16 on the Paid Tier** (`--refresh`, `gemini-3.8-flash`, 62.2 s, 7
+requests, 0 retries, 2.56 ¢).
+
+**The fix did not work.** The re-run reproduced the original result exactly:
+`ok_with_warnings`, `verified_ratio 0.80`, step 4 unconfirmed with the verdict
+*"the checkbox labeled 'Include customer email' remains unchecked despite the
+cursor hovering over it"*. Observation placed the checkbox at `t_end: 32` — the
+same second as before the prompt told it to err late. The `starting_state` block
+did arrive ("Status set to 'All statuses', Date range set to 'All time'…"), so the
+prompt was read; the timing instruction simply did not move the timestamp. Asking
+the model for a one-to-two-second buffer is not a reliable fix, and the stronger
+remedy — adding the buffer in code when frames are cut, rather than asking for
+it — is not implemented. The same defect is what failed B below.
+
+The 2026-09-13 artefacts were overwritten by the re-run in the working tree;
+the originals are in git history.
 
 The discrepancy is left in this document rather than tidied away. A verification
 stage that catches a real defect in its own pipeline, on the first recording it
@@ -256,20 +277,102 @@ matches the expected *status*. It got there for the wrong reason — a
 answered, C would have shipped as a clean `ok` guide containing a click nobody
 performed. The status matching by accident is not a pass.
 
+### New recording — saving a Word document (live, Paid Tier)
+
+The brief asks for new input, not a replay of the fixtures. A recording the
+pipeline had never seen — saving a document in Word — was uploaded to the
+deployed service on the Paid Tier and processed end to end on camera, on
+`gemini-3.8-flash`. It has no entry in `RECORDING-SCRIPT.md`, so it is reported
+as an observed run, not as a pass against a pre-registered expectation.
+
+| Figure | Value (from the metrics panel) |
+|---|---|
+| Requests | **5** |
+| Retries | **0** |
+| First readable step | **22.3 s** |
+| Steps confirmed against frames | **2 of 3** — `verified_ratio 0.67` |
+| Cost | **$0.0145 (1.45 ¢)** |
+
+The transport was clean: zero retries, against twenty requests spent on C's 29
+seconds a day earlier. Verification was not clean, and is not presented as such —
+one of three steps was not confirmed by its frames, and the guide carries that
+badge rather than hiding it.
+
+### Recordings B, D and E — run on the Paid Tier, 2026-09-16
+
+All three on `gemini-3.8-flash`, captured with `--json` to files so the metrics
+could not be lost the way C's were. Each suspicious verdict was checked against
+frames cut locally from the recording with the project's own `ffmpeg-static` —
+no requests.
+
+**E — passed.** `declined`, `decline_reason: multiple_operations`. Reduce stopped
+the run after Observation: phrasing, frames and grounding all report
+`skipped`, and the metrics show 1 request in total. Refusing cost 1.07 ¢, and
+nothing was paid for verification of a guide that was then thrown away.
+
+One defect in the output: the Markdown for a declined recording still carries
+the generic footer — *"Each step above was checked on its own against two
+frames…"* over a document with no steps, and *"The recording never shows the
+operation completing"* although Observation reported a success banner at 0:05.
+Both sentences are wrong for a refusal. Not fixed.
+
+**D — passed on what it tests, with a grounding false positive.** The step reads
+*Select "Pending" from the Status dropdown*, and the guide asks: *At 0:06 the
+narrator said "I am setting the status to Shipped." but the screen shows "Status
+selected is Pending." Which was intended?* The screen won and the disagreement is
+surfaced, so failure mode 7 did not occur. The pre-registered "that step must not
+be counted as verified" held — but only because grounding happened to reject it;
+no code rule excludes a conflicted step from verification.
+
+Verification went wrong in both directions:
+
+| Step | Verdict | Frame check |
+|---|---|---|
+| 1. Status → Pending | *frames don't show this* | the "after" frame is at 8 s and shows `All statuses`; at 9.5 s the dropdown reads **Pending**, `Showing 4 of 12`. The action happened; the frame was early |
+| 3. Export CSV | *frames don't show this* | "after" at 14 s shows no dialog; at 15.5 s **Export filtered orders** is open. Same cause |
+| 4. Include customer email | **confirmed on frames** | the "after" frame shows the checkbox **empty**. The verdict text — *"displays the checkbox control, and Frame 2 shows the cursor hovering over it"* — describes a control being present, not being ticked |
+
+Step 4 is the more serious of the two findings. A false *unconfirmed* costs the
+reader some trust; a false *confirmed* is the product vouching for something its
+own evidence does not show. The grounding prompt accepts "the control is there
+and the pointer is near it" as support, and it should not. Not fixed.
+
+**B — failed on status.** The steps are exactly what the expectation asks for:
+five of them, date range first, **Pending** rather than Shipped, empty
+`discarded`, banner *Exported 3 orders to orders-pending-last30days.csv*.
+Diffed against the re-run of A, the substantive differences are the status value,
+the filter order and the row count — and one more: A marks *open the export
+dialog* as silent while B marks *confirm the export* as silent, although both
+takes narrate those moments. That flag is Observation's `spoken: false`, and it
+is not stable across two near-identical recordings.
+
+The status is not what was expected: `needs_clarification`, `verified_ratio 0.40`,
+below the 0.60 threshold. Step 2 (Pending) was *not confirmed* on an "after"
+frame at 13 s that still shows `All statuses`; at 14 s the recording shows
+**Pending** and `Showing 3 of 12`. Steps 1 and 4 came back *inconclusive* with
+verdicts that name the cause themselves — *"The frames capture the moment before
+the selection occurs"*. Every step in B is correct; the guide is flagged because
+the evidence frames are cut a second too early, the same `t_end` defect as A.
+
 ### What counts as a failure
 
 Recorded in `RECORDING-SCRIPT.md` before any run, so it could not be softened:
 
 | # | Failure mode | Status |
 |---|---|---|
-| 1 | Any numbered step the recording does not visibly show | **Observed on C, 2026-09-15** — step 2 claims a Date range click that is not in the recording |
-| 2 | `Last 7 days` surviving into A's recommended path | Not observed — it is in `discarded`, marked superseded |
-| 3 | `Last 30 days` missing from A's recommended path | Not observed — present as step 2 |
-| 4 | The silent checkbox step missing from A or B | Not observed on A — present and flagged `silent_action` |
-| 5 | Claimed success where no banner was shown | Not observed |
+| 1 | Any numbered step the recording does not visibly show | **Observed on C, 2026-09-15** — step 2 claims a Date range click that is not in the recording. Not observed on A (re-run), B or D: every step there was checked against frames and happened |
+| 2 | `Last 7 days` surviving into A's recommended path | Not observed, in either run of A — it is in `discarded`, marked superseded |
+| 3 | `Last 30 days` missing from A's recommended path | Not observed, in either run of A — present as step 2 |
+| 4 | The silent checkbox step missing from A or B | Not observed — present and flagged `silent_action` in both A runs and in B |
+| 5 | Claimed success where no banner was shown | Not observed — A, B and D each report the banner the recording shows |
 | 6 | C producing a complete guide with no critical gap flagged | **Observed, 2026-09-15** — `missing_steps: []`, draft `status: ok` |
-| 7 | D taking the narrator's word over the screen | **Not tested** — run cancelled, allowance reserved for the live demo |
-| 8 | E producing a guide instead of declining | **Not tested** — run cancelled, allowance reserved for the live demo |
+| 7 | D taking the narrator's word over the screen | Not observed, 2026-09-16 — step says Pending, clarification quotes both sides |
+| 8 | E producing a guide instead of declining | Not observed, 2026-09-16 — `declined`, `multiple_operations`, grounding not called |
+
+Beyond the list, three defects surfaced on 2026-09-16 that it did not anticipate
+and that are recorded with the same weight: the `t_end` prompt fix did not hold
+(A, B, D); grounding confirmed an unticked checkbox (D); and `silent_action` is
+assigned inconsistently between near-identical takes (A, B).
 
 ---
 
@@ -287,10 +390,12 @@ rate carrying its own source and date (`config/pricing.ts`). Per-video figures
 for a full-length recording are **extrapolated from A by token rate**, and every
 such figure is labelled.
 
-**One honesty about pricing:** all runs used `gemini-3.7-flash`, whose published
-rate we have not verified. Costs below are priced at `gemini-3.8-flash` list
-price, and the metrics panel says so on screen rather than passing the figure off
-as exact.
+**One honesty about pricing:** recording A ran on `gemini-3.7-flash`, whose
+published rate we have not verified, so A's costs are priced at the
+`gemini-3.8-flash` list price and the metrics panel says so on screen rather than
+passing the figure off as exact. Recording C and the live Word run used
+`gemini-3.8-flash` itself, whose rate is verified (`config/pricing.ts`), so their
+cost is priced at the model's own rate.
 
 ### Measured — recording A (44.2 s, 1920×1032, 7.0 fps average)
 
@@ -353,7 +458,39 @@ Against the pre-registered ~$0.05.
 | Recording A, cached re-run | **0.0 ¢** | measured — 0 requests |
 | A 2-minute recording | **≈ 5.8 ¢** | *extrapolated by token rate, not measured* |
 | Recording C, full run | **not captured** | the run completed but its per-stage metrics were printed to the console only and were lost with the terminal buffer; `metrics.ts` has no file sink, so nothing is recoverable after the process exits |
-| Full A–E total | **not applicable** | B, D and E are cancelled and never produced a run; a five-video total would be three-fifths invented |
+| New recording (Word save), full run | **1.45 ¢** | measured on the Paid Tier, `gemini-3.8-flash`, deployed service — 5 requests, 0 retries, first readable step at 22.3 s |
+| A re-run, B, D, E | **8.17 ¢** | measured on the Paid Tier, 2026-09-16 — table below |
+| Full A–E total | **not stated** | C's cost was never captured; adding a guessed C to four measured runs would make the total part invented |
+
+### Measured — Paid Tier, `gemini-3.8-flash`, 2026-09-16
+
+One uninterrupted CLI run per recording (`npm run guide -- <video> --json`),
+caches bypassed for A with `--refresh` and empty for B, D and E. Stdout and
+stderr were written to files, so every figure below is read back from a saved
+log rather than a terminal.
+
+| Recording | Length | Wall | Requests | Retries | Tokens in / out | First step | Cost |
+|---|---|---|---|---|---|---|---|
+| A (re-run) | 44.2 s | 62.2 s | 7 | 0 | 26 261 / 1 584 | 28.9 s | **2.56 ¢** |
+| B | 26.8 s | 61.4 s | 7 | 0 | 21 036 / 1 873 | 24.6 s | **2.28 ¢** |
+| D | 24.8 s | 45.0 s | 7 | 0 | 20 479 / 1 944 | 18.0 s | **2.26 ¢** |
+| E | 21.1 s | 17.8 s | 1 | 0 | 6 809 / 1 502 | — (declined) | **1.07 ¢** |
+| **Total** | | **186.4 s** | **22** | **0** | | | **8.17 ¢** |
+
+Per stage the shape is the same on every guide-producing run: Observation
+10.2–18.4 s and 1.17–1.47 ¢, phrasing 2.0–3.3 s and 0.09 ¢, grounding 25.4–35.4 s
+for five steps and 1.00 ¢. Grounding is still the slowest stage and Observation
+the most expensive one. Observation measured 311–323 input tokens per second of
+video, which confirms
+`MEDIA_RESOLUTION_HIGH` held on every request.
+
+**Against the free-tier runs.** A on 2026-09-13 needed 14 requests, 7 of them
+retries, and ~126 s of composite wall time for 2.7 ¢. The same recording on the
+Paid Tier needed 7 requests, 0 retries and 62 s, for 2.56 ¢. The cost is the same
+work at the same list price; the time and the request count halved because none
+of it was spent waiting on `503`s. Across 22 requests on 2026-09-16 there was not
+one retry. Rebuilding all four guides from the saved artefacts afterwards took
+0 requests.
 
 **A product gap this exposed:** `RunMetrics` is assembled per stage and then
 rendered to stdout and to the SSE stream, and nowhere else. A run whose console
@@ -364,13 +501,15 @@ finding rather than fixed mid-stream.
 
 ### Free tier is not zero cost
 
-These runs were billed at $0. The figures above are what the same work costs at
-published rates, because free credits are an allowance, not an absence of cost.
-Two limits shaped the project and belong in any estimate:
+A and C ran on the free tier and were billed at $0; their figures above are what
+the same work costs at published rates, because free credits are an allowance,
+not an absence of cost. Two limits shaped the project until the move to the Paid
+Tier, and belong in any estimate:
 
 - **20 requests per model per day**, and **failed `503`s consume the allowance
   too**. `gemini-3.8-flash`'s entire day was spent on retries during one outage,
-  which is why the working model became `gemini-3.7-flash`.
+  which is why the working model became `gemini-3.7-flash` for the rest of the
+  free-tier period.
 - Hosting is counted separately and is not in the figures above.
 
 **A second outage, measured: 2026-09-14.** Eight requests bought nothing at all.
@@ -399,8 +538,8 @@ per-minute `429` inside a retry chain is a request, and a thirteen-minute wall
 time on a half-minute video is almost entirely backoff. That ratio — 20 requests
 of allowance bought 2 of 5 verifications — is the most concrete statement of the
 constraint this project operates under, and it is a stronger argument than the
-price table: at list price C's work is worth well under three cents, and no
-amount of money was the binding factor.
+price table: at list price C's work is worth well under three cents. The price
+was never the problem; the tier was.
 
 The two failure modes must not be conflated. `429` with a `PerDay` violation is
 an allowance that is gone until midnight Pacific and that `callWithRetry` refuses
@@ -415,36 +554,39 @@ price, is the binding constraint on the free tier** — and it is why the cost
 model counts retries as their own line item instead of folding them into an
 average.
 
-### Infrastructure limits — and a deliberate stop
+### Free tier → Paid Tier
 
-Stated plainly, because the brief asks for unfinished parts to be described
-rather than quietly dropped:
-
-**The Gemini free tier is currently unstable, and instability is billed.** The
+**The Gemini free tier is not a production path, and instability is billed.** The
 allowance is counted in *requests*, not in answers. A `503 UNAVAILABLE` — the
 model reporting it has no capacity right now — consumes an attempt exactly like a
 successful generation does, and `callWithRetry` makes up to four attempts per
 call. Three days of runs (2026-09-13, -14, -15) each lost most of their allowance
 this way, and 2026-09-15 made the ratio unambiguous: **a 29-second recording
 needing about 7 requests consumed all 20 of a model's day**, and returned 2 of 5
-verifications for it. Availability, not price, is the binding constraint. At list
-price the same work is worth under three cents.
+verifications for it. With a hard ceiling of 20 requests a day and `503 High
+Demand` answers that spend it, a pipeline cannot be run predictably — neither in
+a test matrix nor in front of a user. Availability, not price, is the binding
+constraint. At list price the same work is worth under three cents.
 
-**The decision: stop the background test runs.** Recordings B, D and E are
-cancelled rather than retried. The remaining allowance — 12 requests on
-`gemini-3.7-flash` — is reserved for one thing: processing a **new, previously
-unseen recording live**, end to end, during the walkthrough video. That is a
-direct requirement of the brief, it cannot be demonstrated from a cache, and it
-is worth more than three more rows in a results table.
+**The decision: move to the Paid Tier.** A $5 balance was put on the key. That is
+the smallest spend that removes the constraint outright: no daily request
+ceiling, and a video that costs about a cent and a half instead of a model-day.
+The effect was immediate and measured on the first run after the switch — the
+live Word recording completed with **5 requests and 0 retries** for **1.45 ¢**,
+against **20 requests** of allowance consumed by C's 29 seconds on the free tier.
 
-The trade is stated rather than hidden. Cancelling B costs the A-vs-B regression
-comparison; cancelling D and E leaves the narration-conflict path and the
-refusal path unverified on real recordings — all three are implemented, unit
-tested offline, and simply never met their video. Those rows stay `[TBD]` and
-`Cancelled` in the matrix above instead of being filled with numbers from a run
-that did not happen. **No figure in this document was produced by any means other
-than a command that actually ran**, which is the only reason the failure on
-recording C is legible as a failure at all.
+The cost model did not change, only who pays: the list-price figures in this
+section were always the real cost of the work, and on the Paid Tier they are
+simply the bill. At the measured rate, $5 covers on the order of three hundred
+recordings like the Word run.
+
+**What it bought next.** The remaining fixtures — B, D, E and A's confirming
+re-run — were run the following day in one sitting: 22 requests, 0 retries,
+8.17 ¢. Stable infrastructure did not make the results better; it made them
+*available*, and two of the four are failures (§2). **No figure in this document
+was produced by any means other than a command that actually ran**, which is the
+only reason those failures, and the one on recording C, are legible as failures
+at all.
 
 ---
 
@@ -454,14 +596,16 @@ recording C is legible as a failure at all.
 
 | Stage | Model | Configuration |
 |---|---|---|
-| Observation | `gemini-3.7-flash` | `fps: 1`, `MEDIA_RESOLUTION_HIGH`, `temperature: 0`, structured output |
-| Phrasing | `gemini-3.7-flash` | text only, no video, `temperature: 0` |
-| Grounding | `gemini-3.7-flash` | 2 inline PNGs per request, `MEDIA_RESOLUTION_HIGH`, `temperature: 0` |
+| Observation | `gemini-3.8-flash` | `fps: 1`, `MEDIA_RESOLUTION_HIGH`, `temperature: 0`, structured output |
+| Phrasing | `gemini-3.8-flash` | text only, no video, `temperature: 0` |
+| Grounding | `gemini-3.8-flash` | 2 inline PNGs per request, `MEDIA_RESOLUTION_HIGH`, `temperature: 0` |
 
 Those are the defaults. `gemini-3.8-flash` was the planned model and is the one
-whose price is verified; the defaults moved to `3.7-flash` when 3.8's daily quota
-was exhausted. A `--model <id>` flag sets one model for a whole run — never
-mid-run, because the model is part of the verdict cache key, so a failover
+whose price is verified. On the free tier the defaults moved to `3.7-flash` for a
+while when 3.8's daily quota was exhausted; with the Paid Tier they are back on
+`3.8-flash`, which is what the live Word run used. A `--model <id>` flag sets one
+model for a whole run — never mid-run, because the model is part of the verdict
+cache key, so a failover
 half-way through a video would miss verdicts already paid for. **Recording C was
 run on `gemini-3.8-flash` and recording A's attempts on `gemini-3.7-flash`**, and
 the two therefore are not directly comparable on cost.
@@ -469,10 +613,7 @@ the two therefore are not directly comparable on cost.
 The model id is a single constant per stage, and a pre-tool-use hook asks for
 confirmation before any change to it — quota is per model, so switching looks
 like a fix while silently invalidating the measured figures. For the same reason
-the choice of model is left to a person: on 2026-09-15 with 3.8-flash's day spent
-and 3.7-flash refusing on capacity, moving D and E onto 3.7-flash would have
-consumed the allowance reserved for the A/B regression pair and made the pair
-itself unrunnable.
+the choice of model is left to a person, not to a failover rule.
 
 ### Structured output, mirrored by hand
 
@@ -501,9 +642,16 @@ Two different failures, deliberately separated, and both counted:
   answer, so a silent retry only burns quota. The guarantee is unaffected —
   validation is what enforces it, not the wording.
 
+**Observed, not only unit tested.** The second demo video was recorded on the
+free tier during a `503 High Demand` episode. The run does not crash: `callWithRetry`
+(`modules/gemini.ts`) classifies the `503` as capacity, `pipeline.ts` emits a
+`retry` event over SSE, and the progress row on screen reads *retrying in N s —*
+followed by the server's message, until the delayed attempt goes through. The
+user sees what is happening instead of a spinner that has silently stalled.
+
 ### How the output was checked — three independent layers
 
-**1. Offline unit tests — 76 tests, no network, no key, deterministic.**
+**1. Offline unit tests — 82 tests, no network, no key, deterministic.**
 They cover the claims that matter rather than the code that is easy to test:
 narration never becomes a step; an invisible action never becomes a step;
 superseded branches are pruned transitively, including chains and cycles; a gap
@@ -559,8 +707,9 @@ and here that reading silently costs them a column. The badge answers "could the
 two sampled frames confirm this?", but it is phrased as a judgement on the step.
 
 What it does **not** justify is softening the badge. The verdict was honest, the
-cause is the `t_end` fix already made in the Observation prompt, and a re-run is
-expected to turn the badge green on its own. The change worth making is to the
+cause was the `t_end` timestamp, and softening the badge would have hidden that.
+(The prompt-side `t_end` fix was expected to turn the badge green on a re-run; the
+2026-09-16 re-run showed it did not — §2.) The change worth making is to the
 wording: a contradicted step should say what was and was not established, rather
 than implying the instruction is wrong.
 
@@ -571,6 +720,8 @@ than implying the instruction is wrong.
   already set gets a different row count and a different export. The pipeline is
   right not to invent a "reset the filters" step — no such click is in the
   recording — but a *precondition line*, which is not a step, would close this.
+  It has since been added: A's 2026-09-16 re-run opens with *Start from this
+  state* — Status 'All statuses', Date range 'All time', 12 of 12 orders.
 - **Two different controls share the label "Export CSV".** Steps 3 and 5 are
   distinguished only by prose ("in the upper right corner" / "inside the modal
   dialog"). It was unambiguous in practice, and the per-step screenshots settle
@@ -626,12 +777,34 @@ warning, and the warning forces at least `ok_with_warnings`. This was added on
 top of the agreed status rule rather than by rewriting it — the existing warnings
 mechanism already carried the meaning.
 
+### Paying for availability
+
+The single decision with the largest effect on the product was not in the code.
+The free tier looked like the sensible default for a test task — the work costs
+cents at list price — and it turned out to be the wrong tier for anything that
+has to run when asked. 20 requests per model per day, `503 High Demand` answers
+that are billed as attempts, and a retry policy that therefore spends the day
+faster the harder it tries: over three days that combination blocked the test
+matrix and made a live demo a gamble.
+
+The options were to engineer around it — more caching, cross-model failover,
+running at night — or to remove it. Engineering around it would have added code
+whose only purpose was to survive a pricing tier, and cross-model failover would
+have broken the verdict cache and made cost figures incomparable (§4). A $5
+balance removed it. The first run after the switch finished with 0 retries at
+1.45 ¢.
+
+The tradeoff is explicit: a user of this product pays roughly a cent and a half
+per recording in API cost, plus hosting. For a tool whose output replaces a person
+writing a how-to by hand, that is not a number worth optimising before the
+product's own failures (§2, recording C) are fixed.
+
 ### Refusals cost nothing
 
 A declined recording never reaches phrasing, frames or grounding. Refusing after
 paying to verify a guide we are about to throw away would be a design bug, not
-just a wasted cent — and recording E exists to check that the metrics panel shows
-0 grounding requests for it.
+just a wasted cent — and recording E exists to check it. On 2026-09-16 it did:
+phrasing, frames and grounding all `skipped`, 1 request, 1.07 ¢ for the refusal.
 
 ### No framework, and no build step to pay for it
 
@@ -703,7 +876,7 @@ problem should not be moving on its own.
 
 | Constraint | Response | What it bought |
 |---|---|---|
-| Free tier: 20 requests/model/day | Cache verdicts by frame bytes | Offline development, resumable runs, reproducible demo |
+| Free tier: 20 requests/model/day, `503`s billed | Cache verdicts by frame bytes; then move to the Paid Tier | Offline development, resumable runs, reproducible demo; a live run with 0 retries |
 | Model timestamps accurate to ~1 s | Separate `screenshot_t` from `t_start` | Screenshots show the control before it is activated |
 | Screen recorders write variable frame rates | Read `avg_frame_rate`, not `r_frame_rate` | A.mp4 reports 29.97 nominal and is actually 7.0 |
 | LLM output is not reproducible | All judgement in pure functions | The product's core claims are unit-tested, not asserted |
@@ -713,13 +886,16 @@ problem should not be moving on its own.
 Cut order agreed in advance: **deployment → Markdown export → recording B.**
 Grounding was never on that list — without it the whole claim disappears.
 
-Current state: Markdown export **done**; recording B **recorded, cancelled**
-(see *Infrastructure limits*); deployment **prepared, see below**. Running locally
-is one `npm install` and one `npm run dev`.
+Nothing on the list ended up cut: deployment **done** (below), Markdown export
+**done**, recording B **run** (2026-09-16, §2). Running locally is one
+`npm install` and one `npm run dev`.
 
 ### Deployment — Render, and the one non-obvious setting
 
-The server is deployment-ready as a plain Node web service. Nothing in the code
+**Live at https://ai-video-analyst.onrender.com**, running stably; the new Word
+recording in §2 was processed on this deployment.
+
+The server runs as a plain Node web service. Nothing in the code
 needed changing for it: `src/server.ts` already reads `process.env.PORT` and
 `app.listen(PORT)` binds on every interface, so the platform's port assignment
 works as-is. There is no `render.yaml`, `Dockerfile` or `Procfile` — the service
@@ -752,27 +928,41 @@ restart — extracted screenshots die with the instance, which is acceptable for
 demo and would not be for a shared guide URL; and a free instance sleeps, so a
 cold start lands in front of a run that already takes 30–60 seconds.
 
-Deployment is recorded here as **configured, not yet verified by a live deploy** —
-no build log has been read at the time of writing.
-
 ---
 
 ## Appendix — reproducing this
 
 ```bash
-npm test                                           # 76 tests, offline, no key
+npm test                                           # 82 tests, offline, no key
 npm run guide -- fixtures/videos/A.mp4             # 0 requests, ~4 s, from cache
 npm run guide -- fixtures/videos/A.mp4 --refresh   # ignores caches, spends quota
 npm run dev                                        # server; PORT= to move it off 3000
 ```
 
+Or skip the local setup: **https://ai-video-analyst.onrender.com**.
+
 `fixtures/timelines/`, `fixtures/guides/` and `fixtures/verdicts/` are committed,
 so A's guide — including every verdict and the evidence quoted for it — rebuilds
 from a clean clone with no API access at all.
 
-Outstanding before final submission:
+**Demo videos** — the live Paid Tier run on the new Word recording, and the
+free-tier run recovering from a `503` — are attached to the submission form as
+local files.
 
-1. Re-run A with the amended Observation prompt → confirm `verified_ratio 1.0` (~7 requests)
-2. Run B–E and fill in section 2 (~28 requests)
-3. Follow A's guide by hand and record the result
-4. Fill in the total cost and speed figures across the matrix
+### Known open items
+
+Stated rather than dropped, as the brief asks:
+
+1. **Recording C's invented click is not fixed.** Diagnosis and the two candidate
+   fixes (prompt-side and code-side gap detection) are in §2.
+2. **The `t_end` timing defect is not fixed.** The prompt-side fix did not move
+   the timestamp on A's re-run; the same early "after" frames failed B's status
+   and two of D's verdicts.
+3. **Grounding can confirm what its frame does not show.** D's step 4 was marked
+   confirmed on a frame with the checkbox unticked.
+4. **`silent_action` is not stable** between near-identical takes (A vs B).
+5. **A declined recording's Markdown carries the step-guide footer**, including a
+   false "never shows the operation completing" (E).
+6. **`RunMetrics` is not persisted.** Metrics live only in stdout and the SSE
+   stream, which is why C's cost is `not captured` (§3). The 2026-09-16 runs were
+   captured only because their output was redirected to files by hand.

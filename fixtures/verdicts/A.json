@@ -1,37 +1,37 @@
 {
   "schema_version": "verdicts/1",
   "video": "A",
-  "model": "gemini-3.7-flash",
+  "model": "gemini-3.8-flash",
   "entries": {
-    "c477fdede4ba3a1c9e74a480b3e334171f9a9a550c993e0bc9acf149a7e1b148": {
+    "aceea8277c0a4b35ec7784a2ad7a3ccd0a097649dace62b6bd51f24da4d42e1f": {
       "result": "supported",
       "evidence_text": "Shipped",
-      "reasoning": "Frame 1 shows the Status dropdown set to 'All statuses', and Frame 2 shows 'Shipped' selected in the Status dropdown, filtering the orders.",
-      "cached_at": "2026-09-13T10:11:47.134Z"
+      "reasoning": "In Frame 1, the Status dropdown is set to 'All statuses'. In Frame 2, the Status dropdown has been changed to 'Shipped', filtering the table to only show shipped orders.",
+      "cached_at": "2026-09-16T07:58:08.238Z"
     },
-    "be024e4637892a19b34465e291b7d3032861eafcf4cf123a27f0fe5ac04c5aef": {
+    "05538d52e001439a28bca14f096b9c214420f6445c6f41dfb43a065d4bb5face": {
       "result": "supported",
       "evidence_text": "Last 30 days",
-      "reasoning": "Frame 1 shows the Date range dropdown set to 'Last 7 days', and Frame 2 shows that 'Last 30 days' has been selected, updating the order results.",
-      "cached_at": "2026-09-13T10:11:54.008Z"
+      "reasoning": "Frame 1 shows the 'Date range' dropdown set to 'Last 7 days', while Frame 2 shows it successfully updated to 'Last 30 days'.",
+      "cached_at": "2026-09-16T07:58:10.965Z"
     },
-    "3e81cc9cd4f20125ba72ef08132a1e0c496aace9a1426066012c8348087fce0f": {
+    "1e0f59a5924c3e39c89695e95929e081ee99897b2fae81a6acb7eab78f5b0394": {
       "result": "supported",
       "evidence_text": "Export CSV",
-      "reasoning": "Frame 1 shows the 'Export CSV' button in the upper right corner, and Frame 2 shows the cursor clicking it, which opens the 'Export filtered orders' modal.",
-      "cached_at": "2026-09-13T10:12:28.421Z"
+      "reasoning": "Frame 1 displays the 'Export CSV' button in the upper right corner, and Frame 2 shows the resulting 'Export filtered orders' modal dialog opened.",
+      "cached_at": "2026-09-16T07:58:17.135Z"
     },
-    "6ea6ec68c2c1742edf517bf3413c1ae0458ff85b3c44d52f71a57445ec660860": {
+    "7139ed363b2eee641273f8e59a2d4435bd32543f751878d46d86689b79a01913": {
       "result": "contradicted",
       "evidence_text": "Include customer email",
-      "reasoning": "In both Frame 1 and Frame 2, the 'Include customer email' checkbox remains unchecked.",
-      "cached_at": "2026-09-13T10:12:45.473Z"
+      "reasoning": "Between Frame 1 and Frame 2, the checkbox labeled 'Include customer email' remains unchecked despite the cursor hovering over it.",
+      "cached_at": "2026-09-16T07:58:22.232Z"
     },
-    "e0a18c79b57fc72550a42b3e6ad1b91387027e90e90c11b1e66cca7ce85557d6": {
+    "0f54dc42c0bf69a689c31086b6196d03fe5bb3596fa8533fddb653cc5645d911": {
       "result": "supported",
       "evidence_text": "Export CSV",
-      "reasoning": "The frames show the mouse cursor positioned over and clicking the 'Export CSV' button within the 'Export filtered orders' modal dialog.",
-      "cached_at": "2026-09-13T10:12:48.456Z"
+      "reasoning": "The cursor is positioned directly over and clicks the 'Export CSV' button in the 'Export filtered orders' modal dialog.",
+      "cached_at": "2026-09-16T07:58:36.532Z"
     }
   }
 }

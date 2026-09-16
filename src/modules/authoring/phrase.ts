@@ -24,7 +24,7 @@ import {
   type PhrasingResponse,
 } from '../../schemas/draft.js';
 
-export const PHRASING_MODEL = 'gemini-3.7-flash';
+export const PHRASING_MODEL = 'gemini-3.8-flash';
 
 /** One structural retry, as agreed: a second disagreement is a stage failure, not a third try. */
 export const PHRASING_MAX_ATTEMPTS = 2;
